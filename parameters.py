@@ -5,7 +5,7 @@ Created on Tue Mar  3 22:19:33 2015
 @author: oliver
 """
 
-class ParameterSet:
+class ParameterSet(object):
     
     def __init__(self, pars={}):  # -- Anna changed here for pars to be optional
 
