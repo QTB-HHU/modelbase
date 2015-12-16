@@ -31,10 +31,18 @@ class Results():
         :param r: range of steps of simulation for which results we are interested in
         :return: concentrations of variable j as one vector
         """
+
+        if type(j) == int:
+            j = [j]
+
         if r is None:
             r = range(len(self.results))
 
-        X = np.hstack([self.results[i]['y'][:, j] for i in r])
+        X = np.vstack([self.results[i]['y'][:,j] for i in r])
+        #X = np.vstack([np.reshape(self.results[i]['y'][:, j],np.size(self.results[i]['y'],0),len(j)) for i in r])
+
+        if np.size(X,1) == 1:
+            X = np.reshape(X,[np.size(X,0)])
 
         return X
 
