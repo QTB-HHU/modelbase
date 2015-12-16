@@ -21,3 +21,13 @@ class ParameterSet(object):
         for k,v in mypars.items():
             setattr(self,k,v)
 
+
+
+    def update(self, pars):
+        '''
+        updates parameters with keys/values provided in pars
+        '''
+
+        for k,v in pars.items():
+            setattr(self,k,v)
+
