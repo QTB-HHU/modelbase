@@ -9,6 +9,8 @@ import numpy as np
 import scipy.integrate as sci
 import math
 
+import numdifftools as nd
+
 class Simulate:
 
     def __init__(self, model):
@@ -77,7 +79,8 @@ class Simulate:
         print Y, type(Y)
         cnt = 1
         while cnt < len(T) and self.successful():
-            print cnt, Y
+            if self._warnings:
+                print cnt, Y
             Y.append(self.integrate(T[cnt], Y[cnt-1], t0=T[cnt-1],
                                     minstep=minstep,
                                     maxstep=maxstep,
@@ -90,3 +93,55 @@ class Simulate:
             self.results.append({'t': T, 'y': np.vstack(Y)})
 
         return np.vstack(Y)
+
+
+    def sim2SteadyState(self, y0, AbsTol = 1e-7, t0 = 0, step = 0.1, maxstep = 1000):
+        '''
+        Simulation until steady-state is reached (difference between two simulation steps < AbsTol) 
+        or maxstep steps have been performed.
+        Returns the last value of simulation.
+        If unsuccessful (> maxstep simulation steps), self.successful() will return False, else True
+        '''
+        self._successful = True
+
+        T = t0
+        cnt = 0
+        Y0 = y0
+        err = np.linalg.norm(Y0,ord=2)
+
+        while self.successful() and cnt < maxstep and err > AbsTol:
+            Y = self.integrate(T+step, Y0, t0=T)
+            T += step
+            cnt += 1
+            err = np.linalg.norm(Y-Y0, ord=2)
+            if self._warnings:
+                print('T=', T, ' err=', err)
+            Y0 = Y
+
+        if cnt >= maxstep:
+            self._successful = False
+
+        elif self.doesMonitor() and self.successful():
+            self.results.append({'t':np.array([T]),'y':np.vstack([Y])})
+
+        return Y
+
+
+
+    def numericElasticities(self, y0, rate):
+        '''
+        y0: state vector
+        rate: name of rate for which elasticities shall be determined
+        '''
+ 
+        v0 = self.model.rates(y0)
+
+        def vi(y):
+            v = self.model.rates(y)
+            return v[rate]
+
+        jac = nd.Jacobian(vi,step=y0.min()/100)
+
+        epsilon = jac(y0)
+
+        return epsilon
