@@ -145,3 +145,21 @@ class Simulate:
         epsilon = jac(y0)
 
         return epsilon
+
+    def numericJacobian(self, y0):
+
+        J = np.zeros([len(y0),len(y0)])
+
+        for i in range(len(y0)):
+
+            def fi(y):
+                dydt = self.model.model(y)
+                return dydt[i]
+
+            jac = nd.Jacobian(fi,step=y0.min()/100)
+
+            J[i,:] = jac(y0)
+
+        return np.matrix(J)
+
+        
