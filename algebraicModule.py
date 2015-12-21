@@ -3,6 +3,8 @@ __author__ = 'oliver'
 import modelbase.parameters as param
 import numpy as np
 
+import numdifftools as nd
+
 class AlgebraicModule(object):
 
     '''
@@ -40,4 +42,27 @@ class AlgebraicModule(object):
             return np.array([self.convertFun(self.par,y[i,:]) for i in range(y.shape[0])])
 
    
+
+    def jacobian(self, y0):
+        '''
+        returns the derivatives of all compounds in the algebraic module
+        versus the determining quantities at point y0. 
+        Returned as np.matrix
+        '''
+
+        conc = self.getConcentrations(y0)
+
+        theta = np.zeros([len(conc),len(y0)])
+
+        for i in range(len(conc)):
+
+            def si(y):
+                conc = self.getConcentrations(y)
+                return conc[i]
+
+            jac = nd.Jacobian(si, step=y0.min()/100)
+
+            theta[i,:] = jac(y0)
+
+        return np.matrix(theta)
 
