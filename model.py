@@ -4,6 +4,9 @@ __author__ = 'oliver'
 import modelbase.parameters
 import numpy as np
 
+import numdifftools as nd
+
+
 class Model(object):
     '''
     base class for modelling. Provides basic functionality.
@@ -11,10 +14,14 @@ class Model(object):
 
     def __init__(self, pars={}, defaultpars={}):
         self.par = modelbase.parameters.ParameterSet(pars,defaultpars)
-        self.rateNames = []
         self.cpdNames = []
         self.rateFn = {}
         self.stoichiometries = {}
+
+
+    def rateNames(self):
+        return self.stoichiometries.keys()
+
 
     def set_cpds(self,cpdList):
         '''
@@ -92,6 +99,17 @@ class Model(object):
         return {r:self.rateFn[r](y) for r in self.stoichiometries.keys()}
 
 
+    def ratesArray(self, y):
+        '''
+        argument: np.array y - values of all compounds
+        output: array with rates, order as self.stoichiometry.keys()
+        '''
+
+        v = self.rates(y)
+        return np.array([v[k] for k in self.stoichiometries.keys()])
+        
+        
+
     def model(self, y):
         '''
         argument: np.array y - including values of all compounds
@@ -108,3 +126,42 @@ class Model(object):
                 dydt[idx[cpd]] += n * v[rate]
 
         return dydt
+
+
+
+
+    def numericElasticities(self, y0, rate):
+        '''
+        y0: state vector
+        rate: name of rate for which elasticities shall be determined
+        '''
+ 
+        def vi(y):
+            v = self.rates(y)
+            return v[rate]
+
+        jac = nd.Jacobian(vi,step=y0.min()/100)
+
+        epsilon = jac(y0)
+
+        return epsilon
+
+
+    def numericJacobian(self, y0):
+        '''
+        y0: state vector at which Jacobian is calculated
+        '''
+        J = np.zeros([len(y0),len(y0)])
+
+        for i in range(len(y0)):
+
+            def fi(y):
+                dydt = self.model(y)
+                return dydt[i]
+
+            jac = nd.Jacobian(fi,step=y0.min()/100)
+
+            J[i,:] = jac(y0)
+
+        return np.matrix(J)
+

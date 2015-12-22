@@ -15,7 +15,7 @@ class AlgebraicModule(object):
     
     '''
 
-    def __init__(self,par,fn):
+    def __init__(self,par,fn=None):
         '''
         initiation by passing parameters, a function and two lists:
         fn: function calculating concentration of compounds in module from the values of the variables describing the modules
@@ -29,8 +29,12 @@ class AlgebraicModule(object):
         #self.varNames = amVars # actually not necessary here. Only when including in embedding model
         #self.cpdNames = amCpds
 
-        self.convertFun = fn
-
+        if fn:
+            self.convertFun = fn
+        else:
+            def dummy(x):
+                return np.array([0.])
+            self.convertFun = dummy
 
 
     def getConcentrations(self, y):

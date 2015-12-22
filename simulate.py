@@ -128,6 +128,9 @@ class Simulate:
 
 
 
+    # these two do not belong here, should be part of model.py
+    # they have been introduced in model.py but kept here for compatilibity reasons
+
     def numericElasticities(self, y0, rate):
         '''
         y0: state vector
