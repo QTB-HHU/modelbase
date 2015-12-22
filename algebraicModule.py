@@ -47,7 +47,7 @@ class AlgebraicModule(object):
 
    
 
-    def jacobian(self, y0):
+    def elasticities(self, y0):
         '''
         returns the derivatives of all compounds in the algebraic module
         versus the determining quantities at point y0. 

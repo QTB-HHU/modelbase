@@ -3,7 +3,7 @@ __author__ = 'oliver'
 import numpy as np
 
 
-class Results():
+class Results(object):
 
     def __init__(self, s):
         """

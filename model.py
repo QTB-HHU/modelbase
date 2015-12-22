@@ -7,6 +7,10 @@ import numpy as np
 import numdifftools as nd
 
 
+def idx(list):
+    return {it: id for id, it in enumerate(list)}
+
+
 class Model(object):
     '''
     base class for modelling. Provides basic functionality.
@@ -29,6 +33,26 @@ class Model(object):
         TO DECIDE: do we want add_cpds and even rm_cpds?
         '''
         self.cpdNames = cpdList
+
+
+    def stoichiometryMatrix(self):
+        '''
+        returns the stoichiometry matrix
+        '''
+
+        cid = idx(self.cpdNames)
+        #print cid
+        rn = self.rateNames()
+    
+        N = np.zeros([len(self.cpdNames),len(rn)])
+
+        for i in range(len(rn)):
+            for (c, n) in self.stoichiometries[rn[i]].items():
+                #print "c=%s, cid=%d, r=%s, n=%d" % (c, cid[c], rn[i], n)
+                N[cid[c],i] = n
+
+        return np.matrix(N)
+
 
 
     def cpdIds(self):
@@ -69,6 +93,7 @@ class Model(object):
 
         self.rateFn[rateName] = v
 
+
     def set_stoichiometry(self, rateName, stDict):
         '''
         sets stoichiometry for rate rateName to values contained in stDict
@@ -80,6 +105,7 @@ class Model(object):
         '''
 
         self.stoichiometries[rateName] = stDict
+
 
     def set_stoichiometry_byCpd(self, cpdName, stDict):
         '''
