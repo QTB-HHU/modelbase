@@ -11,3 +11,9 @@ def massAction(p, *args):
         v = v * x
 
     return v
+
+
+def MM1(Vmax, KM, X):
+    """ returns Michaelis-Menten rate for irreversible reaction with one substrate """
+    return Vmax * X / (KM + X)
+

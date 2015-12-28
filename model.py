@@ -4,6 +4,8 @@ __author__ = 'oliver'
 import modelbase.parameters
 import numpy as np
 
+import scipy.optimize as opt
+
 import numdifftools as nd
 
 
@@ -191,3 +193,17 @@ class Model(object):
 
         return np.matrix(J)
 
+
+    def findSteadyState(self, y0):
+        '''
+        tries to find the steady-state by numerically solving the algebraic system dy/dt = 0.
+        input: y0: initial guess
+        TODO: this method can be improved. So far, it simply tries the standard solving method hybr
+        '''
+        
+        sol = opt.root(self.model, y0)
+
+        if sol.success == True:
+            return sol.x
+        else:
+            return False
