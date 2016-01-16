@@ -13,12 +13,12 @@ import numdifftools as nd
 
 class Simulate:
 
-    def __init__(self, model):
+    def __init__(self, model, **kwargs):
 
         self.model = model
 
         def dydt(t, y, m):
-            return m.model(y)
+            return m.model(y, t, **kwargs)
 
         self.dydt = dydt
         self._successful = True

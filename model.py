@@ -86,12 +86,12 @@ class Model(object):
         sids = np.array([cids[x] for x in args])
 
         if len(sids) == 0:
-            def v(y):
-                return fn(self.par)
+            def v(y,**kwargs):
+                return fn(self.par,**kwargs)
         else:
-            def v(y):
+            def v(y,**kwargs):
                 cpdarg = y[sids]
-                return fn(self.par,*cpdarg)
+                return fn(self.par,*cpdarg,**kwargs)
 
         self.rateFn[rateName] = v
 
@@ -118,27 +118,27 @@ class Model(object):
 
 
 
-    def rates(self, y):
+    def rates(self, y, **kwargs):
         '''
         argument: np.array y - values of all compounds
         output: dict with rateNames as keys and corresponding values
         '''
 
-        return {r:self.rateFn[r](y) for r in self.stoichiometries.keys()}
+        return {r:self.rateFn[r](y, **kwargs) for r in self.stoichiometries.keys()}
 
 
-    def ratesArray(self, y):
+    def ratesArray(self, y, **kwargs):
         '''
         argument: np.array y - values of all compounds
         output: array with rates, order as self.stoichiometry.keys()
         '''
 
-        v = self.rates(y)
+        v = self.rates(y, **kwargs)
         return np.array([v[k] for k in self.stoichiometries.keys()])
         
         
 
-    def model(self, y):
+    def model(self, y, t, **kwargs):
         '''
         argument: np.array y - including values of all compounds
         output: np.array dydt - including all corresponding temporal changes required for dynamic simulation / ODE integration
@@ -146,7 +146,9 @@ class Model(object):
 
         dydt = np.zeros(len(y))
 
-        v = self.rates(y)
+        kwargs.update({'t':t})
+
+        v = self.rates(y, **kwargs)
         idx = self.cpdIds()
 
         for rate,st in self.stoichiometries.items():
