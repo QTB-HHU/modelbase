@@ -62,6 +62,13 @@ class Model(object):
         returns a dict with keys:cpdNames, values:idx
         '''
         return {self.cpdNames[i]:i for i in range(len(self.cpdNames))}
+
+
+    def get_argids(self, *args):
+
+        cids = self.cpdIds()
+        return np.array([cids[x] for x in args])
+        
         
 
     def set_rate(self, rateName, fn, *args):
@@ -80,6 +87,46 @@ class Model(object):
 
         m.rateFn['v1'](np.array([3,2,1]))
         # 1.5
+        '''
+        cids = self.cpdIds()
+        
+        sids = self.get_argids(*args)
+
+
+        if len(sids) == 0:
+            # note: the **kwargs is necessary to allow all rates to be called in the same way. It can be empty.
+            def v(y,**kwargs): 
+                return fn(self.par)
+        else:
+            def v(y,**kwargs):
+                cpdarg = y[sids]
+                return fn(self.par,*cpdarg)
+
+        self.rateFn[rateName] = v
+
+
+
+    def set_ratev(self, rateName, fn, *args):
+        '''
+        sets a rate, which depends on additional information. 
+        Difference to set_rate: the rate is called with an additional variable **kwargs. 
+        This always contains time as key 't', and other user-defined stuff that is passed to methods 'model', 'rates'
+        Arguments:
+        Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
+        The function fn is called with the parameters self.par as first argument and the dynamic variables corresponding to the compounds as variable argument list.
+
+        Example
+        -------
+        m = modelbase.model.Model({'l':1,'k1':0.5})
+        m.set_cpds(['X'])
+        def v1(par,**kwargs):
+            return np.exp(-par.l*kwargs['t'])
+        m.set_rate('v1',v1)
+
+        m.rateFn['v1'](np.array([0]),t=0)
+        # 1
+        m.rateFn['v1'](np.array([0]),t=1)
+        # 0.36787944117144233
         '''
         cids = self.cpdIds()
         

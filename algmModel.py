@@ -22,6 +22,19 @@ class AlgmModel(Model):
         self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
 
 
+    
+    def get_argids(self, *args):
+
+        cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+        cnt = len(self.cpdNames)
+
+        for ammod in self.algebraicModules:
+            cpdids.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
+            cnt += len(ammod['amCpds'])
+
+        return np.array([cpdids[x] for x in args])
+
+    """
     def set_rate(self, rateName, fn, *args):
         '''
         sets a rate. Arguments:
@@ -50,7 +63,7 @@ class AlgmModel(Model):
                 return fn(self.par,*cpdarg)
 
         self.rateFn[rateName] = v
-        
+    """    
 
     def fullConcVec(self, y):
         '''
@@ -70,11 +83,11 @@ class AlgmModel(Model):
         return z
 
 
-    def rates(self, y):
+    def rates(self, y, **kwargs):
 
         z = self.fullConcVec(y)
 
-        return {r:self.rateFn[r](z) for r in self.stoichiometries.keys()}
+        return {r:self.rateFn[r](z, **kwargs) for r in self.stoichiometries.keys()}
 
 
 
