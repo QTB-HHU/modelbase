@@ -88,7 +88,6 @@ class Model(object):
         m.rateFn['v1'](np.array([3,2,1]))
         # 1.5
         '''
-        cids = self.cpdIds()
         
         sids = self.get_argids(*args)
 
@@ -128,9 +127,7 @@ class Model(object):
         m.rateFn['v1'](np.array([0]),t=1)
         # 0.36787944117144233
         '''
-        cids = self.cpdIds()
-        
-        sids = np.array([cids[x] for x in args])
+        sids = self.get_argids(*args)
 
         if len(sids) == 0:
             def v(y,**kwargs):
