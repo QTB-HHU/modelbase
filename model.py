@@ -221,7 +221,7 @@ class Model(object):
         return epsilon
 
 
-    def numericJacobian(self, y0):
+    def numericJacobian(self, y0, **kwargs):
         '''
         y0: state vector at which Jacobian is calculated
         '''
@@ -230,7 +230,7 @@ class Model(object):
         for i in range(len(y0)):
 
             def fi(y):
-                dydt = self.model(y)
+                dydt = self.model(y, 0, **kwargs)
                 return dydt[i]
 
             jac = nd.Jacobian(fi,step=y0.min()/100)
@@ -240,14 +240,16 @@ class Model(object):
         return np.matrix(J)
 
 
-    def findSteadyState(self, y0):
+    def findSteadyState(self, y0, **kwargs):
         '''
         tries to find the steady-state by numerically solving the algebraic system dy/dt = 0.
         input: y0: initial guess
         TODO: this method can be improved. So far, it simply tries the standard solving method hybr
         '''
         
-        sol = opt.root(self.model, y0)
+        def fn(x):
+            return self.model(x, 0, **kwargs)
+        sol = opt.root(fn, y0)
 
         if sol.success == True:
             return sol.x
