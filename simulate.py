@@ -127,7 +127,54 @@ class Simulate:
         return Y
 
 
+    def estimatePeriod(self,y0,t0=0.,twait=1000.,tend=3000.,dt=0.1,osctol=1.,varno=0):
+        '''
+        attempts to estimate a period from a simulation running to a stable limit cycle.
+        This does only work for 'smooth' oscillation. 
+        TODO: a more robust method based on autocorrelations (see np.convolve)
+        '''
+        T = np.arange(t0,tend,dt)
+        
+        Y = self.timeCourse(T,y0)
 
+        iwait = np.where(T>twait)[0].min()
+
+        if not self.successful():
+            return False, False, False
+
+        A = Y[iwait:,varno]
+        Amax = A.max()
+        Amin = A.min()
+
+        if Amax - Amin < osctol:
+            return False, False, False
+
+        m = (Amax+Amin)/2.
+
+        if A[-1] < m:
+            A = Amax + Amin - A
+
+        i0 = np.where(A<m)[0].max()
+        w1 = np.where(A[:i0]>m)[0]
+        if len(w1) == 0:
+            return False, False, False
+        else:
+            i1 = w1.max()
+        w2 = np.where(A[:i1]<m)[0]
+        if len(w2) == 0:
+            return False, False, False
+        else:
+            i2 = w2.max()
+
+        P = T[iwait+i0] - T[iwait+i2]
+
+        ymax = Y[iwait+i2:iwait+i0,:].max(0)
+        ymin = Y[iwait+i2:iwait+i0,:].min(0)
+
+        return P, ymax, ymin
+
+        
+            
     # these two do not belong here, should be part of model.py
     # they have been introduced in model.py but kept here for compatilibity reasons
 
