@@ -5,6 +5,9 @@ Created on Tue Mar  3 22:19:33 2015
 @author: oliver
 """
 
+
+# TODO: allow dictionary or ParameterSet as pars / defaultpars
+
 class ParameterSet(object):
     
     def __init__(self, pars={}, defaultpars={}):  # -- Anna changed here for pars to be optional

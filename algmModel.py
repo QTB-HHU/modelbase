@@ -71,14 +71,21 @@ class AlgmModel(Model):
         input: y - state vector of all dynamic variables
         output: z - state vector extended by all derived concentrations
         '''
-        vlist = [y]
+        z = y.copy()
+        #vlist = [y]
         cpdids = {it: id for id, it in enumerate(self.cpdNames)}
 
         for ammod in self.algebraicModules:
             varids = np.array([cpdids[x] for x in ammod['amVars']])
-            vlist.append(ammod['am'].getConcentrations(y[varids]))
+            zam = ammod['am'].getConcentrations(z[varids])
 
-        z = np.hstack(vlist)
+            cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
+
+            z = np.hstack([z,zam])
+            cpdids = dict(cpdids, **cpdidsam)
+            #vlist.append(ammod['am'].getConcentrations(y[varids]))
+
+        #z = np.hstack(vlist)
 
         return z
 
