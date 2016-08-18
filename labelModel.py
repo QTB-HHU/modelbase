@@ -144,6 +144,7 @@ class LabelModel(AlgmModel):
 
             # set rate
             rateargs = subargs+otherargs
+            print rateargs
             self.set_rate(rateName, fn, *rateargs)
 
             # set stoichiometry dictionary
@@ -164,3 +165,14 @@ class LabelModel(AlgmModel):
         for rateName in keys(self.rateFn):
             if rateName.startswith(rateBaseName):
                 self.set_stoichiometry(rateName, stDict)
+
+
+if __name__ == '__main__':
+
+m=LabelModel({'k':1.})
+m.add_cpd('GAP',3)
+m.add_cpd('DHAP',3)
+m.add_carbonmap_reaction('TPI',fn,[2,1,0],['GAP'],['DHAP'],'GAP')
+y=np.array(range(8))*.1
+y2=np.hstack([y,np.zeros(8)])
+print m.rates(y2)
