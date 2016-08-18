@@ -36,6 +36,17 @@ class Model(object):
         '''
         self.cpdNames = cpdList
 
+    def add_cpd(self, cpdName):
+        '''
+        adds a single compound with name cpdName (string) to cpdNames
+        '''
+        self.cpdNames.append(cpdName)
+
+    def add_cpds(self, cpdList):
+        '''
+        adds a list of compounds (list of strings with names) to cpdNames
+        '''
+        self.cpdNames = self.cpdNames + cpdList
 
     def stoichiometryMatrix(self):
         '''
