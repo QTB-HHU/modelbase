@@ -156,23 +156,16 @@ class LabelModel(AlgmModel):
             
 
 
-    def set_base_stoichiometry(self, rateBaseName, stDict):
-        '''
-        sets identical stoichiometries for all reactions 'rateBaseName'
-        substrateList is required to know 
-        '''
-
-        for rateName in keys(self.rateFn):
-            if rateName.startswith(rateBaseName):
-                self.set_stoichiometry(rateName, stDict)
 
 
 if __name__ == '__main__':
 
-m=LabelModel({'k':1.})
-m.add_cpd('GAP',3)
-m.add_cpd('DHAP',3)
-m.add_carbonmap_reaction('TPI',fn,[2,1,0],['GAP'],['DHAP'],'GAP')
-y=np.array(range(8))*.1
-y2=np.hstack([y,np.zeros(8)])
-print m.rates(y2)
+    m=LabelModel({'k':1.})
+    m.add_cpd('GAP',3)
+    m.add_cpd('DHAP',3)
+    def fn(par,x):
+        return par.k*x
+    m.add_carbonmap_reaction('TPI',fn,[2,1,0],['GAP'],['DHAP'],'GAP')
+    y=np.array(range(8))*.1
+    y2=np.hstack([y,np.zeros(8)])
+    print m.rates(y2)

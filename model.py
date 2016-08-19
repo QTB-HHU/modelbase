@@ -8,6 +8,8 @@ import scipy.optimize as opt
 
 import numdifftools as nd
 
+import re
+
 
 def idx(list):
     return {it: id for id, it in enumerate(list)}
@@ -79,8 +81,21 @@ class Model(object):
 
         cids = self.cpdIds()
         return np.array([cids[x] for x in args])
-        
-        
+
+    def find_re_argids(self, regexp):
+        '''
+        Returns list of indices for which the compound name matches the
+        regular expression
+        Useful especially in conjunction with labelModel:
+        e.g. find all FBPs labelled at pos 3: find_re_argids("\AFBP...1..\Z")
+        '''
+        cids = self.cpdIds()
+        reids = []
+        for cpdName in self.cpdNames:
+            if re.match(regexp,cpdName):
+                reids.append(cids[cpdName])
+        return np.array(reids)
+
 
     def set_rate(self, rateName, fn, *args):
         '''
