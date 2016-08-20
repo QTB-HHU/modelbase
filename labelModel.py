@@ -72,6 +72,8 @@ class LabelModel(AlgmModel):
 
     def set_base_rate(self, rateBaseName, fn, numsubs, *args):
         '''
+        FIXME: Obsolete!! The key function is add_carbonmap_reaction
+
         sets an identical rate expression for all isotope labelling patters of the substrates
         numsubs: int defining the number of substrates in *args
         '''
@@ -154,6 +156,35 @@ class LabelModel(AlgmModel):
             print stDict
             self.set_stoichiometry(rateName, stDict)
             
+
+    def set_initconc_cpd_labelpos(self, y0dict, labelpos):
+        '''
+        generates a vector of initial concentrations, such that
+        everything is unlabelled excpet those specified in dictionary labelpos.
+
+        Inputs:
+
+        y0dict: a dictionary with compound names as keys and concentrations as values. These are used to set the total concentrations. By default to the unlabelled compound.
+
+        labelpos: a dictionary with compound names as keys and the position of the label as value. 
+
+        Output:
+
+        A full length vector of concentrations.
+
+        Example: GAP labelled at 1-position, DHAP and FBP unlabelled
+        
+        y0 = m.set_initconc_cpd_labelpos({'GAP':1,'DHAP':20,'FBP':4},{'GAP':0})
+        '''
+        y0 = np.zeros(len(self.cpdNames))
+        for cpd, c in self.cpdBaseNames.iteritems():
+            labels = ['0'] * c
+            if labelpos.has_key(cpd):
+                labels[labelpos[cpd]] = '1'
+            cpdName = cpd+''.join(labels)
+            y0[self.get_argids(cpdName)] = y0dict[cpd]
+
+        return y0
 
 
 
