@@ -1,6 +1,8 @@
 __author__ = 'oliver'
 
 
+
+
 import modelbase.parameters
 import numpy as np
 
@@ -16,8 +18,112 @@ def idx(list):
 
 
 class Model(object):
-    '''
-    base class for modelling. Provides basic functionality.
+    '''The base class for modelling. Provides basic functionality.
+
+    This class defines an object with which model construction and
+    numeric simulations are made easy.
+
+    An instance of class Model is used to define the model, i.e. the
+    dynamic variables and the dynamic equations defining their temporal
+    derivatives.
+
+    The numeric simulation is performed with an instance of class
+    Simulate.
+
+    Useful analysis methods are provided by class Results
+
+    Mini tutorial
+    =============
+
+    Every model is defined by 
+    - model parameters
+    - model variables
+    - rate equations
+    - stoichiometries
+
+    Example: A chemical reaction chain 
+
+    -> X -> Y ->
+    
+    Two variables "X", "Y"
+
+    Three parameters: influx (v0), rate constant conversion X->Y (k1),
+    rate constant for outflux (k2)
+
+    Three rate equations:
+    - v0 (constant)
+    - v1 = k1*X
+    - v2 = k2*Y
+
+    with the stoichiometries
+    - v0 adds one X
+    - v1 removes one X, adds one Y
+    - v2 removes one Y
+
+    Mathematically, this results in the two model equations:
+    - dX/dt = v0 - k1*X
+    - dY/dt = k1*X - k2*Y
+
+    When instanciating a model, the model parameters are provided as
+    a dictionary:
+
+    m = Model({'v0':1, 'k1': 0.5, 'k2': 0.1})
+
+    The variables can now be accessed by m.par.v0, m.par.k1 and m.par.k2
+
+    Now, the variables need to be added. Variables are ALWAYS defined by
+    names (i.e. strings). These are later used to access and identify
+    the variables and their values. Here:
+
+    m.set_cpds(['X','Y'])
+
+    The last thing to do is to set the rates. This is done using
+    set_rate.  Here, the first argument is always a name that the rate
+    is associated with (to access it later) and the second is a
+    function that calculates the rate. The remaining parameters are
+    the names of the variables whose values are passed to the
+    function. The function must always accept as first argument a
+    parameter object (actually, m.par), and the remaining arguments
+    are the values of the variables used to calculate the rate.
+
+    Rate v0: this is particularly simple, because it is constant:
+
+    m.set_rate('v0', lambda p: p.v0)
+
+    Rate v1: this depends also on the value of variable 'X'. So we define
+    a function first.
+
+    def v1(p,x):
+        return p.k1*x
+
+    m.set_rate('v1', v1, 'X')
+
+    Likewise v2:
+
+    def v2(p,x):
+        return p.k2*x
+
+    m.set_rate('v2', v2, 'Y')
+
+    Last thing is to set the stoichiometries:
+
+    m.set_stoichiometry('v0',{'X':1})
+    
+    m.set_stoichiometry('v1',{'X':-1,'Y':1})
+    
+    m.set_stoichiometry('v2',{'Y':-1})
+
+    Simulation and Plot:
+
+    s = Simulate(m)
+    
+    T = np.linspace(0,100,1000)
+    Y = s.timeCourse(T,np.zeros(3))
+
+    plt.plot(T,Y)
+
+    This example is found in example.py. Other examples using additional
+    functionalities are provided in the other example{i}.py files
     '''
 
     def __init__(self, pars={}, defaultpars={}):
@@ -73,6 +179,7 @@ class Model(object):
     def cpdIds(self):
         '''
         returns a dict with keys:cpdNames, values:idx
+        FIXME: this should be cached to improve efficiency!!!
         '''
         return {self.cpdNames[i]:i for i in range(len(self.cpdNames))}
 
