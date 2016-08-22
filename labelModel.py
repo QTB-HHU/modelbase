@@ -107,7 +107,8 @@ class LabelModel(AlgmModel):
         Sets all stoichiometries for these reactions.
         requires additionally
         - carbonmap: a list defining how the carbons appear in the products
-          (of course, number of Cs must be the same for substrates and products)
+          (of course, number of Cs must be the same for substrates and products,
+           _except_ if a uniform outflux is defined. Then simply carbonmap=[])
         - subList: list of substrates
         - prodList: list of products
         - *args: list of arguments required to calculate rate using function fn 
@@ -157,7 +158,7 @@ class LabelModel(AlgmModel):
             self.set_stoichiometry(rateName, stDict)
             
 
-    def set_initconc_cpd_labelpos(self, y0dict, labelpos):
+    def set_initconc_cpd_labelpos(self, y0dict, labelpos={}):
         '''
         generates a vector of initial concentrations, such that
         everything is unlabelled excpet those specified in dictionary labelpos.
