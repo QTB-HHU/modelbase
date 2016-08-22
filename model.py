@@ -120,7 +120,7 @@ class Model(object):
         m.set_cpds(['X'])
         def v1(par,**kwargs):
             return np.exp(-par.l*kwargs['t'])
-        m.set_rate('v1',v1)
+        m.set_ratev('v1',v1)
 
         m.rateFn['v1'](np.array([0]),t=0)
         # 1
