@@ -25,6 +25,7 @@ class Simulate:
         self._monitor = True
         self._warnings = False
         self.clearResults()
+        self.generate_integrator()
 
     def successful(self):
         return self._successful
@@ -37,19 +38,38 @@ class Simulate:
     def clearResults(self):
         self.results = []
 
+    def generate_integrator(self, integrator='lsoda', max_step=0.1, nsteps=500):
+        '''
+        generates a sci.ode object used for integration
+        '''
+        self.integrator = sci.ode(self.dydt).set_integrator(integrator, max_step=max_step, nsteps=nsteps)
+        self._integrator = integrator
+        self._max_step = max_step
+        self._nsteps = nsteps
 
-    def initialize(self, y0, t0=0, integrator='lsoda', max_step=0.1, nsteps=500):
-        self.integrator = sci.ode(self.dydt).set_integrator(integrator, max_step=step, nsteps=numsteps)
-        self.integrator.set_initial_value(
-    def integrate(self, t, y0, integrator='lsoda', minstep=1e-8, maxstep=0.1, nsteps=500, t0=0):
+    def set_initial_value(self, y0, t0=0):
+        '''
+        initialises the sci.ode integrator
+        '''
+        self.integrator.set_initial_value(y0, t0)
+        self.integrator.set_f_params(self.model)
+
+
+    def integrate(self, t, minstep=1e-8, maxstep=0.1, nsteps=500):
         """ integration, returns variables at time t """
+
+        #if self.integrator is None:
+        #    raise(ModelError, "no integrator defined. Call generate_integrator")
+
+        r = self.integrator
+
+        y0 = r.y
+        t0 = r.t
+
         step = maxstep
         numsteps = max(nsteps, 10*math.floor((t-t0)/step))
 
         while step >= minstep:
-            r = sci.ode(self.dydt).set_integrator(integrator, max_step=step, nsteps=numsteps)
-            r.set_initial_value(y0, t0)
-            r.set_f_params(self.model)
 
             # suppress FORTRAN warnings
             if not self._warnings:
@@ -69,8 +89,18 @@ class Simulate:
                 print(r.t, r.y)
                 print(self.model.rates(r.y))
 
+            r.set_integrator(self._integrator, max_step=step, nsteps=numsteps)
+            r.set_initial_value(y0, t0)
+            r.set_f_params(self.model)
+
+
+        if step < maxstep: # set back to standard steps
+            r.set_integrator(self._integrator, max_step=self._max_step, nsteps=self._nsteps)
+
+
         self._successful = r.successful()
         return r.y
+
 
     def timeCourse(self, T, y0, integrator='lsoda', minstep=1e-8, maxstep=0.1, nsteps=500):
         """ integration over time, different integrators possible, lsoda default
@@ -81,16 +111,18 @@ class Simulate:
 
         Y = [y0]
         #print Y, type(Y)
+
+        self.set_initial_value(y0)
+
         cnt = 1
         while cnt < len(T) and self.successful():
             if self._warnings:
                 print cnt, Y
                 print(T[cnt])
-            Y.append(self.integrate(T[cnt], Y[cnt-1], t0=T[cnt-1],
+            Y.append(self.integrate(T[cnt],
                                     minstep=minstep,
                                     maxstep=maxstep,
-                                    nsteps=nsteps,
-                                    integrator=integrator))
+                                    nsteps=nsteps))
             cnt += 1
 
         if self.doesMonitor() and self.successful():
