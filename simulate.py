@@ -37,6 +37,10 @@ class Simulate:
     def clearResults(self):
         self.results = []
 
+
+    def initialize(self, y0, t0=0, integrator='lsoda', max_step=0.1, nsteps=500):
+        self.integrator = sci.ode(self.dydt).set_integrator(integrator, max_step=step, nsteps=numsteps)
+        self.integrator.set_initial_value(
     def integrate(self, t, y0, integrator='lsoda', minstep=1e-8, maxstep=0.1, nsteps=500, t0=0):
         """ integration, returns variables at time t """
         step = maxstep
