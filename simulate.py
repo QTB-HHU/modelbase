@@ -11,7 +11,7 @@ import math
 
 import numdifftools as nd
 
-class Simulate:
+class Simulate(object):
 
     def __init__(self, model, **kwargs):
 
@@ -145,8 +145,10 @@ class Simulate:
         Y0 = y0
         err = np.linalg.norm(Y0,ord=2)
 
+        self.set_initial_value(Y0, t0=T)
+
         while self.successful() and cnt < maxstep and err > AbsTol:
-            Y = self.integrate(T+step, Y0, t0=T)
+            Y = self.integrate(T+step, t0=T)
             T += step
             cnt += 1
             err = np.linalg.norm(Y-Y0, ord=2)
@@ -210,43 +212,105 @@ class Simulate:
         return P, ymax, ymin
 
         
+
+
+    # What follows are the old Results methods.
+    # It does not make sense to separate Simulate and Results
+
+    def getT(self, r=None):
+        """
+        :param r: range of steps of simulation for which results we are interested in
+        :return: time of all results as one vector
+        """
+        if r is None:
+            r = range(len(self.results))
+
+        T = np.hstack([self.results[i]['t'] for i in r])
+
+        return T
+
+    def getVar(self, j, r=None):
+        """
+        :param j: int of the state variable [0:PQred, ..., 5:ATPsynth]
+        :param r: range of steps of simulation for which results we are interested in
+        :return: concentrations of variable j as one vector
+        """
+
+        if type(j) == int:
+            j = [j]
+
+        if r is None:
+            r = range(len(self.results))
+
+        X = np.vstack([self.results[i]['y'][:,j] for i in r])
+        #X = np.vstack([np.reshape(self.results[i]['y'][:, j],np.size(self.results[i]['y'],0),len(j)) for i in r])
+
+        if np.size(X,1) == 1:
+            X = np.reshape(X,[np.size(X,0)])
+
+        return X
+
+    def getRate(self, rate, r=None):
+        """
+        :param rate: name of the rate
+        :param r: range of steps of simulation for which results we are interested in
+        :return: rate with name 'rate' of all results as one vector
+        """
+        if r is None:
+            r = range(len(self.results))
+
+        V = np.array([])
+
+        for i in r:
+            t = self.results[i]['t']
+            y = self.results[i]['y']
+
+            V = np.hstack([V,
+                           np.array(
+                           [self.model.rates(y[j])[rate] for j in range(len(t))]
+                           )])
+
+        return V
+
+
+
             
     # these two do not belong here, should be part of model.py
     # they have been introduced in model.py but kept here for compatilibity reasons
 
-    def numericElasticities(self, y0, rate):
-        '''
-        y0: state vector
-        rate: name of rate for which elasticities shall be determined
-        '''
- 
-        v0 = self.model.rates(y0)
-
-        def vi(y):
-            v = self.model.rates(y)
-            return v[rate]
-
-        jac = nd.Jacobian(vi,step=y0.min()/100)
-
-        epsilon = jac(y0)
-
-        return epsilon
-
-    def numericJacobian(self, y0):
-
-        J = np.zeros([len(y0),len(y0)])
-
-        for i in range(len(y0)):
-
-            def fi(y):
-                dydt = self.model.model(y)
-                return dydt[i]
-
-            jac = nd.Jacobian(fi,step=y0.min()/100)
-
-            J[i,:] = jac(y0)
-
-        return np.matrix(J)
+    #def numericElasticities(self, y0, rate):
+    #    '''
+    #    y0: state vector
+    #    rate: name of rate for which elasticities shall be determined
+    #    '''
+    #
+    #    v0 = self.model.rates(y0)
+    #
+    #    def vi(y):
+    #        v = self.model.rates(y)
+    #        return v[rate]
+    #
+    #    jac = nd.Jacobian(vi,step=y0.min()/100)
+    #
+    #    epsilon = jac(y0)
+    #
+    #    return epsilon
+    #
+    #def numericJacobian(self, y0):
+    #
+    #    J = np.zeros([len(y0),len(y0)])
+    #
+    #    for i in range(len(y0)):
+    #
+    #        def fi(y):
+    #            dydt = self.model.model(y)
+    #            return dydt[i]
+    #
+    #        jac = nd.Jacobian(fi,step=y0.min()/100)
+    #
+    #        J[i,:] = jac(y0)
+    #
+    #    return np.matrix(J)
 
         
 
