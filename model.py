@@ -131,11 +131,19 @@ class Model(object):
         self.cpdNames = []
         self.rateFn = {}
         self.stoichiometries = {}
+        self.cpdIdDict = None
 
 
     def rateNames(self):
         return self.stoichiometries.keys()
 
+
+    def updateCpdIds(self):
+        '''
+        updates self.cpdIdDict. Only needed after modification of model
+        structure, e.g. by set_cpds, add_cpd and add_cpds
+        '''
+        self.cpdIdDict = idx(self.cpdNames)
 
     def set_cpds(self,cpdList):
         '''
@@ -143,18 +151,21 @@ class Model(object):
         TO DECIDE: do we want add_cpds and even rm_cpds?
         '''
         self.cpdNames = cpdList
+        self.updateCpdIds()
 
     def add_cpd(self, cpdName):
         '''
         adds a single compound with name cpdName (string) to cpdNames
         '''
         self.cpdNames.append(cpdName)
+        self.updateCpdIds()
 
     def add_cpds(self, cpdList):
         '''
         adds a list of compounds (list of strings with names) to cpdNames
         '''
         self.cpdNames = self.cpdNames + cpdList
+        self.updateCpdIds()
 
     def stoichiometryMatrix(self):
         '''
@@ -179,9 +190,11 @@ class Model(object):
     def cpdIds(self):
         '''
         returns a dict with keys:cpdNames, values:idx
-        FIXME: this should be cached to improve efficiency!!!
+        This is now cached in self.cpdIdDict. This is updated whenever
+        a compound is added.
         '''
-        return {self.cpdNames[i]:i for i in range(len(self.cpdNames))}
+        return self.cpdIdDict
+        #return {self.cpdNames[i]:i for i in range(len(self.cpdNames))}
 
 
     def get_argids(self, *args):
