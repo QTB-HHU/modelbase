@@ -4,6 +4,8 @@ from modelbase.simulate import Simulate
 
 import itertools
 
+import numpy as np
+
 class LabelSimulate(Simulate):
     '''
     subclass of Simulate, including several access methods for labels
@@ -79,3 +81,21 @@ class LabelSimulate(Simulate):
 
         return Y.sum(1)
 
+
+    def getTotalLabel(self, cpdBaseName, r=None):
+        '''
+        retrieves total labels of cpdBaseName
+        :param cpdBaseName: base name of compound
+        :return: vector with concentrations
+        '''
+
+        if r is None:
+            r = range(len(self.results))
+
+        c = self.model.cpdBaseNames[cpdBaseName]
+        
+        Ylab = []
+        for lnum in range(1,c):
+            Ylab.append(self.getNumLabel(cpdBaseName, lnum) * lnum)
+
+        return np.vstack(Ylab).sum(0)
