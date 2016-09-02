@@ -250,6 +250,35 @@ class Simulate(object):
 
         return X
 
+    def getVarByName(self, cpdName, r=None):
+
+        if r is None:
+            r = range(len(self.results))
+
+        ids = self.model.get_argids(cpdName)
+
+        return self.getVar(ids, r)
+
+    def getVarsByName(self, cpdNames, r=None):
+
+        if r is None:
+            r = range(len(self.results))
+
+        ids = self.model.get_argids(*cpdNames)
+
+        return self.getVar(ids, r)
+
+    def getVarsByRegexp(self, regexp, r=None):
+
+        if r is None:
+            r = range(len(self.results))
+
+        ids = self.model.find_re_argids(regexp)
+
+        return self.getVar(ids, r)
+
+
+
     def getRate(self, rate, r=None):
         """
         :param rate: name of the rate

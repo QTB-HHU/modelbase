@@ -57,6 +57,8 @@ class LabelModel(AlgmModel):
     def add_cpd(self, cpdName, c):
         '''
         adds compound to model, generating all possible labelling patterns
+        :param cpdName: compound base name
+        :param c: number of C atoms
         '''
         self.cpdBaseNames[cpdName] = c
         labelNames = generateLabelCpds(cpdName,c)
