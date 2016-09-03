@@ -155,7 +155,12 @@ class LabelModel(AlgmModel):
             # set stoichiometry dictionary
             # FIXME think about the possibility that a stoichiometry is not +/-1...
             stDict = {k:-1 for k in subargs}
-            stDict.update({k:1 for k in prodargs})
+            for k in prodargs:
+                if stDict.has_key(k):
+                    stDict[k] += 1
+                else:
+                    stDict[k] = 1
+            #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
             print stDict
             self.set_stoichiometry(rateName, stDict)
             
