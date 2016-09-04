@@ -5,7 +5,6 @@ if __name__ == '__main__':
     import modelbase.model
     import modelbase.algmModel
     import modelbase.simulate
-    import modelbase.results
     import modelbase.algebraicModule
 
     import matplotlib.pyplot as plt
@@ -41,14 +40,12 @@ if __name__ == '__main__':
     s = modelbase.simulate.Simulate(m)
     s.timeCourse(np.linspace(0,100,1000),np.zeros(1))
 
-    r = modelbase.results.Results(s)
-
-    a = r.getVar([0])
+    a = s.getVar([0])
     xy = np.array([eqm.getConcentrations(np.array([z])) for z in a])
     
     plt.figure()
-    plt.plot(r.getT(),a)
-    plt.plot(r.getT(),xy)
+    plt.plot(s.getT(),a)
+    plt.plot(s.getT(),xy)
     plt.draw()
 
     print "OK!"

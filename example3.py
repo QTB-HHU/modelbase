@@ -8,7 +8,6 @@ if __name__ == '__main__':
 
     import modelbase.model
     import modelbase.simulate
-    import modelbase.results
 
     import matplotlib.pyplot as plt
 
@@ -37,10 +36,8 @@ if __name__ == '__main__':
     s = modelbase.simulate.Simulate(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(1))
 
-    r = modelbase.results.Results(s)
-
     plt.figure()
-    plt.plot(r.getT(),r.getVar([0]))
+    plt.plot(s.getT(),s.getVar([0]))
     plt.draw()
 
     print "OK!"

@@ -11,7 +11,6 @@ if __name__ == '__main__':
     import modelbase.model
     import modelbase.algmModel
     import modelbase.simulate
-    import modelbase.results
     import modelbase.algebraicModule
 
     import matplotlib.pyplot as plt
@@ -71,10 +70,8 @@ if __name__ == '__main__':
     s = modelbase.simulate.Simulate(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(3))
 
-    r = modelbase.results.Results(s)
-
     plt.figure()
-    plt.plot(r.getT(),r.getVar([0,1,2]))
+    plt.plot(s.getT(),s.getVar([0,1,2]))
     plt.draw()
 
     print "OK!"
