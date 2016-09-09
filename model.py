@@ -4,11 +4,15 @@ __author__ = 'oliver'
 
 
 import modelbase.parameters
+from modelbase.algebraicModule import AlgebraicModule
+
 import numpy as np
 
 import scipy.optimize as opt
 
 import numdifftools as nd
+
+import itertools
 
 import re
 
@@ -401,3 +405,335 @@ class Model(object):
             return sol.x
         else:
             return False
+
+
+
+
+
+
+
+###### class AlgmModel #################################################################
+
+class AlgmModel(Model):
+    '''
+    Subclass of Model, which incorporates algebraic modules.
+    An algebraic module is basically a function that allows calculation of concentrations
+    of some variables by other variables. 
+    The simplest example is a conserved quantity, e.g. ATP+ADP=Atotal, then ADP=Atotal-ATP
+    can be determined from ATP.
+    Rapid Equilibrium modules are a typical application.
+    '''
+    def __init__(self, pars={}, defaultpars={}):
+        super(AlgmModel,self).__init__(pars,defaultpars)
+        self.algebraicModules = []
+
+
+    def updateCpdIds(self):
+        '''
+        updates self.cpdIdDict. Only needed after modification of model
+        structure, e.g. by set_cpds, add_cpd and add_cpds
+        '''
+        cpdIdDict = idx(self.cpdNames)
+        cnt = len(self.cpdNames)
+
+        for ammod in self.algebraicModules:
+            cpdIdDict.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
+            cnt += len(ammod['amCpds'])
+        
+        self.cpdIdDict = cpdIdDict
+        
+
+    def add_algebraicModule(self, am, amVars, amCpds):
+        '''
+        this adds a module in which several compound concentrations can be calculated algebraicly.
+        am: modelbase.algebraicModule.AlgebraicModule
+        amVars: list of names of variables used for module in embedding model
+        amCpds: list of names of compounds which are calculated by the module from amVars
+        '''
+        
+        self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
+        self.updateCpdIds()
+
+    
+    #def get_argids(self, *args):
+    #    # FIXME: this should also be cached
+    #    cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+    #    cnt = len(self.cpdNames)
+    #
+    #    for ammod in self.algebraicModules:
+    #        cpdids.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
+    #        cnt += len(ammod['amCpds'])
+    #
+    #    return np.array([cpdids[x] for x in args])
+
+    """
+    def set_rate(self, rateName, fn, *args):
+        '''
+        sets a rate. Arguments:
+        Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
+        The function fn is called with the parameters self.par as first argument and the dynamic variables corresponding to the compounds as variable argument list.
+
+        In contrast to class Model, args can contain a name from an algebraic module
+
+        '''
+
+        cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+        cnt = len(self.cpdNames)
+
+        for ammod in self.algebraicModules:
+            cpdids.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
+            cnt += len(ammod['amCpds'])
+
+        argids = np.array([cpdids[x] for x in args])
+
+        if len(argids) == 0:
+            def v(y):
+                return fn(self.par)
+        else:
+            def v(y):
+                cpdarg = y[argids]
+                return fn(self.par,*cpdarg)
+
+        self.rateFn[rateName] = v
+    """    
+
+    def fullConcVec(self, y):
+        '''
+        returns the full concentration vector, including all concentrations from algebraic modules
+        input: y - state vector of all dynamic variables
+        output: z - state vector extended by all derived concentrations
+        '''
+        z = y.copy()
+        #vlist = [y]
+        cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+
+        for ammod in self.algebraicModules:
+            varids = np.array([cpdids[x] for x in ammod['amVars']])
+            if len(z.shape) == 1:
+                zin = z[varids]
+            else:
+                zin = z[:,varids]
+            zam = ammod['am'].getConcentrations(zin)
+
+            cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
+
+            z = np.hstack([z,zam])
+            cpdids = dict(cpdids, **cpdidsam)
+            #vlist.append(ammod['am'].getConcentrations(y[varids]))
+
+        #z = np.hstack(vlist)
+
+        return z
+
+
+    def rates(self, y, **kwargs):
+
+        z = self.fullConcVec(y)
+
+        return {r:self.rateFn[r](z, **kwargs) for r in self.stoichiometries.keys()}
+
+
+
+    def allCpdNames(self):
+        ''' returns list of all compounds, including from algebraic modules '''
+        names = []
+        names.extend(self.cpdNames)
+        for ammod in self.algebraicModules:
+            names.extend(ammod['amCpds'])
+
+        return names
+
+ 
+    def allElasticities(self, y0):
+        ''' 
+        calculates all _direct_ elasticities:
+        Rates usually depend on a concentration and not directly on a conserved equilbrium module variable.
+        Therefore, the partial derivatives of the rate expression itself is zero wrt the equilibrium variable, but non-zero wrt to the concentration.
+        :param y0: state vector
+        :return: all elasticities as np.matrix
+        '''
+
+        rateIds = self.rateNames()
+
+        epsilon = np.zeros([len(rateIds), len(self.allCpdNames())])
+
+        z0 = self.fullConcVec(y0)
+
+        for i in range(len(rateIds)):
+
+            def vi(y):
+                return self.rateFn[rateIds[i]](y)
+                
+            jac = nd.Jacobian(vi, step=z0.min()/100)
+
+            epsilon[i,:] = jac(z0)
+
+        return np.matrix(epsilon)
+
+
+
+
+
+
+
+###### class LabelModel #################################################################
+
+
+def generateLabelCpds(cpdName, c):
+    '''
+    generates label versions of a compound.
+    input: string cpdName, int c (number of carbon atoms)
+    output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
+    '''
+
+    cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
+
+    return cpdList
+
+def mapCarbons(sublabels, carbonmap):
+    '''
+    generates a redistributed string for the substrates (sublabels) according to carbonmap
+    '''
+    prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
+    return prodlabels
+
+def splitLabel(label, numc):
+    '''
+    splits the label string according to the lengths given in the list/vector numc
+    '''
+    splitlabels = []
+    cnt = 0
+    for i in range(len(numc)):
+        splitlabels.append(label[cnt:cnt+numc[i]])
+        cnt += numc[i]
+    return splitlabels
+
+
+class LabelModel(AlgmModel):
+    '''
+    LabelModel allows to define a model with carbon labelling pattern information
+    
+    Important information on usage:
+    -------------------------------
+    Compounds must be added with the add_cpd method, which here takes two arguments:
+    cpdName (string) and c (int) specifying number of carbon atoms
+    '''
+
+    def __init__(self, pars={}, defaultpars={}):
+        super(LabelModel,self).__init__(pars,defaultpars)
+        self.cpdBaseNames = {}
+
+
+    def add_cpd(self, cpdName, c):
+        '''
+        adds compound to model, generating all possible labelling patterns
+        :param cpdName: compound base name
+        :param c: number of C atoms
+        '''
+        self.cpdBaseNames[cpdName] = c
+        labelNames = generateLabelCpds(cpdName,c)
+        super(LabelModel,self).add_cpds(labelNames) # add all labelled names
+
+        # now define an algebraic module for the sum of all labels
+        # e.g. if CO20, CO21 are the unlabelled and labelled CO2's,
+        # the total can be accessed by 'CO2' (likewise for any other more complicated compound)
+        def totalconc(par, y):
+            return np.array([y.sum()])
+        tc = AlgebraicModule({}, totalconc)
+        self.add_algebraicModule(tc,labelNames,[cpdName])
+
+
+    def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args):
+        '''
+        sets all rates for reactions for all isotope labelling patterns of the substrates.
+        Sets all stoichiometries for these reactions.
+        requires additionally
+        - carbonmap: a list defining how the carbons appear in the products
+          (of course, number of Cs must be the same for substrates and products,
+           _except_ if a uniform outflux is defined. Then simply carbonmap=[])
+        - subList: list of substrates
+        - prodList: list of products
+        - *args: list of arguments required to calculate rate using function fn 
+          (including substrates and possibly allosteric effectors). 
+          In this list, substrate names MUST come first
+
+        examples for carbon maps:
+        TPI: GAP [0,1,2] -> DHAP [2,1,0] (order changes here), carbonmap = [2,1,0]
+        Ald: DHAP [0,1,2] + GAP [3,4,5] -> FBP, carbonmap = [0,1,2,3,4,5]
+        TK: E4P [0,1,2,3] + X5P [4,5,6,7,8] -> GAP [6,7,8] + F6P [4,5,0,1,2,3], carbonmap = [6,7,8,4,5,0,1,2,3]
+        '''
+
+        # first collect the lengths (num of C) of the substrates and products
+        cs = np.array([self.cpdBaseNames[s] for s in subList])
+        cp = np.array([self.cpdBaseNames[p] for p in prodList])
+
+        # get all args from *args that are not substrates (can be passed directly)
+        otherargs = list(args[len(cs):len(args)])
+        print "otherargs:", otherargs
+
+        # get all possible combinations of label patterns for substrates
+        rateLabels = generateLabelCpds('',cs.sum())
+
+        for l in rateLabels: # loop through all patterns
+            print l
+            pl = mapCarbons(l, carbonmap) # get product labels
+            sublabels = splitLabel(l, cs)
+            prodlabels = splitLabel(pl, cp)
+
+            subargs = [args[i]+sublabels[i] for i in range(len(cs))]
+            print subargs
+            prodargs = [prodList[i]+prodlabels[i] for i in range(len(cp))]
+            print prodargs
+
+            rateName = rateBaseName+l
+
+            # set rate
+            rateargs = subargs+otherargs
+            print rateargs
+            self.set_rate(rateName, fn, *rateargs)
+
+            # set stoichiometry dictionary
+            # FIXME think about the possibility that a stoichiometry is not +/-1...
+            stDict = {k:-1 for k in subargs}
+            for k in prodargs:
+                if stDict.has_key(k):
+                    stDict[k] += 1
+                else:
+                    stDict[k] = 1
+            #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
+            print stDict
+            self.set_stoichiometry(rateName, stDict)
+            
+
+    def set_initconc_cpd_labelpos(self, y0dict, labelpos={}):
+        '''
+        generates a vector of initial concentrations, such that
+        everything is unlabelled excpet those specified in dictionary labelpos.
+        :param y0dict: dict with compound names as keys and total concentrations as values
+        :param labelpos: dict with compound names as keys and the position of the label as value
+        :return: A full length vector of concentrations.
+
+        Inputs:
+
+        y0dict: a dictionary with compound names as keys and concentrations as values. These are used to set the total concentrations. By default to the unlabelled compound.
+
+        labelpos: a dictionary with compound names as keys and the position of the label as value. 
+
+        Output:
+
+        A full length vector of concentrations.
+
+        Example: GAP labelled at 1-position, DHAP and FBP unlabelled
+        
+        y0 = m.set_initconc_cpd_labelpos({'GAP':1,'DHAP':20,'FBP':4},{'GAP':0})
+        '''
+        y0 = np.zeros(len(self.cpdNames))
+        for cpd, c in self.cpdBaseNames.iteritems():
+            labels = ['0'] * c
+            if labelpos.has_key(cpd):
+                labels[labelpos[cpd]] = '1'
+            cpdName = cpd+''.join(labels)
+            y0[self.get_argids(cpdName)] = y0dict[cpd]
+
+        return y0
+
