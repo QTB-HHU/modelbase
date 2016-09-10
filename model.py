@@ -505,7 +505,8 @@ class AlgmModel(Model):
         '''
         z = y.copy()
         #vlist = [y]
-        cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+        #cpdids = {it: id for id, it in enumerate(self.cpdNames)}
+        cpdids = self.cpdIds()
 
         for ammod in self.algebraicModules:
             varids = np.array([cpdids[x] for x in ammod['amVars']])
@@ -515,10 +516,10 @@ class AlgmModel(Model):
                 zin = z[:,varids]
             zam = ammod['am'].getConcentrations(zin)
 
-            cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
+            #cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
 
             z = np.hstack([z,zam])
-            cpdids = dict(cpdids, **cpdidsam)
+            #cpdids = dict(cpdids, **cpdidsam)
             #vlist.append(ammod['am'].getConcentrations(y[varids]))
 
         #z = np.hstack(vlist)
@@ -674,9 +675,13 @@ class LabelModel(AlgmModel):
         # get all possible combinations of label patterns for substrates
         rateLabels = generateLabelCpds('',cs.sum())
 
+        extLabels = ''
+        if cp.sum() > cs.sum(): # this means labels are introduced to the system
+            extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
+
         for l in rateLabels: # loop through all patterns
             print l
-            pl = mapCarbons(l, carbonmap) # get product labels
+            pl = mapCarbons(l+extLabels, carbonmap) # get product labels
             sublabels = splitLabel(l, cs)
             prodlabels = splitLabel(pl, cp)
 
