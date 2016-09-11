@@ -370,6 +370,28 @@ class Model(object):
 
         return epsilon
 
+    def allElasticities(self, y0):
+        ''' 
+        calculates all elasticities:
+        :param y0: state vector
+        :return: all elasticities as np.matrix
+        '''
+
+        rateIds = self.rateNames()
+
+        epsilon = np.zeros([len(rateIds), len(self.cpdNames)])
+
+        for i in range(len(rateIds)):
+
+            def vi(y):
+                return self.rateFn[rateIds[i]](y)
+                
+            jac = nd.Jacobian(vi, step=y0.min()/100)
+
+            epsilon[i,:] = jac(y0)
+
+        return np.matrix(epsilon)
+
 
     def numericJacobian(self, y0, **kwargs):
         '''
