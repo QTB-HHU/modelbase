@@ -296,6 +296,32 @@ class Simulate(object):
 
 
 
+    def getV(self, r=None):
+
+        if r is None:
+            r = range(len(self.results))
+
+        V = np.array([])
+
+        for i in r:
+            if not self.results[i].has_key('v'):
+                
+                t = self.results[i]['t']
+                y = self.results[i]['y']
+                rlist = self.model.rateNames()
+
+                Vnew = []
+                for j in range(len(t)):
+                    vd = self.model.rates(y[j])
+                    vt = np.array([vd[k] for k in rlist])
+                    Vnew.append(vt)
+
+                self.results[i]['v'] = np.vstack(Vnew)
+
+        V = np.vstack([self.results[i]['v'] for i in r])
+        return V
+
+                       
     def getRate(self, rate, r=None):
         """
         :param rate: name of the rate
@@ -435,7 +461,29 @@ class LabelSimulate(AlgmSimulate):
 
         return np.vstack(Ylab).sum(0)
 
+    
+    def getTotalRate(self, rateBaseName, r=None):
+        '''
+        retrieves the sum of all rates starting with 'rateName'
+        :rateBaseName: rateBaseName
+        :return: rate
+        '''
+        if r is None:
+            r = range(len(self.results))
 
+        rid = {v:k for k,v in enumerate(self.model.rateNames())}
+        rsel = []
+        for k,v in rid.items():
+            if k.startswith(rateBaseName):
+                rsel.append(v)
+
+        V = self.getV()[:,rsel].sum(1)
+
+        return V
+            
+
+        
+        
    
     # these two do not belong here, should be part of model.py
     # they have been introduced in model.py but kept here for compatilibity reasons
