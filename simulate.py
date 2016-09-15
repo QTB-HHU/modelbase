@@ -111,10 +111,13 @@ class Simulate(object):
 
         self._successful = True
 
-        Y = [y0]
-        #print Y, type(Y)
+        if y0 is not None:
+            Y = [y0]
+            #print Y, type(Y)
 
-        self.set_initial_value(y0)
+            self.set_initial_value(y0,t0=T[0])
+        else:
+            Y = [np.array(self.integrator.y)]
 
         cnt = 1
         while cnt < len(T) and self.successful():
