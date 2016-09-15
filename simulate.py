@@ -118,6 +118,8 @@ class Simulate(object):
             self.set_initial_value(y0,t0=T[0])
         else:
             Y = [np.array(self.integrator.y)]
+            if T[0] == 0:
+                T += self.integrator.t
 
         cnt = 1
         while cnt < len(T) and self.successful():
