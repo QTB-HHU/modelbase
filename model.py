@@ -135,7 +135,7 @@ class Model(object):
         self.cpdNames = []
         self.rateFn = {}
         self.stoichiometries = {}
-        self.cpdIdDict = None
+        self.cpdIdDict = {}
 
 
     def rateNames(self):
@@ -160,16 +160,20 @@ class Model(object):
     def add_cpd(self, cpdName):
         '''
         adds a single compound with name cpdName (string) to cpdNames
+        if it does not yet exist
         '''
-        self.cpdNames.append(cpdName)
-        self.updateCpdIds()
+        if not self.cpdIds().has_key(cpdName):
+            self.cpdNames.append(cpdName)
+            self.updateCpdIds()
 
     def add_cpds(self, cpdList):
         '''
         adds a list of compounds (list of strings with names) to cpdNames
         '''
-        self.cpdNames = self.cpdNames + cpdList
-        self.updateCpdIds()
+        for k in cpdList:
+            self.add_cpd(k)
+        #self.cpdNames = self.cpdNames + cpdList
+        #self.updateCpdIds()
 
     def stoichiometryMatrix(self):
         '''
@@ -647,7 +651,7 @@ class LabelModel(AlgmModel):
         self.cpdBaseNames = {}
 
 
-    def add_cpd(self, cpdName, c):
+    def add_base_cpd(self, cpdName, c):
         '''
         adds compound to model, generating all possible labelling patterns
         :param cpdName: compound base name
