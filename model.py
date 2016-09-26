@@ -357,6 +357,12 @@ class Model(object):
 
 
 
+    def fullConcVec(self, y):
+        '''
+        included only for compatibility reasons. Now an AlgmSimulate can be used also if no algebraic module is present
+        '''
+        return y
+
 
     def numericElasticities(self, y0, rate):
         '''
@@ -434,6 +440,33 @@ class Model(object):
 
 
 
+    def concentrationControlCoefficients(self, y0, pname, norm=True, **kwargs):
+        '''
+        invokes findSteadyState to calculate the concentration control coefficients
+        for parameter pname
+        :input y0: initial guess for steady-state
+        :input pname: parameter name to vary
+        :input norm: if True (default), normalize coefficients
+        :returns: response coefficients
+        '''
+
+        origValue = getattr(self.par, pname)
+
+        def fn(x):
+            self.par.update({pname: x})
+            return self.findSteadyState(y0, **kwargs)
+
+        jac = nd.Jacobian(fn, step=origValue/100.)
+
+        cc = np.array(jac(origValue))
+
+        self.par.update({pname: origValue})
+
+        if norm:
+            ss = self.findSteadyState(y0, **kwargs)
+            cc = origValue * cc / ss.reshape(ss.shape[0],1)
+
+        return cc
 
 
 
