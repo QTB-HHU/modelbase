@@ -42,3 +42,12 @@ def reversibleMassActionBiUni(kf,eq):
     return _rateLaw
 
                             
+def irrMMnoncompInh(k_Vmax,k_KM,k_KI):
+
+    def _rateLaw(p,X,I):
+        Vmax = getattr(p,k_Vmax)
+        KM = getattr(p,k_KM)
+        KI = getattr(p,k_KI)
+        return Vmax*(X/(KM+X))/(1+I/KI)
+
+    return _rateLaw
