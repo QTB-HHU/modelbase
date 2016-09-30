@@ -409,13 +409,18 @@ class Model(object):
         '''
         J = np.zeros([len(y0),len(y0)])
 
+        if np.isclose(y0.min(),0):
+            jstep = None
+        else:
+            jstep = y0.min()/100
+
         for i in range(len(y0)):
 
             def fi(y):
                 dydt = self.model(y, 0, **kwargs)
                 return dydt[i]
 
-            jac = nd.Jacobian(fi,step=y0.min()/100)
+            jac = nd.Jacobian(fi,step=jstep)
 
             J[i,:] = jac(y0)
 
