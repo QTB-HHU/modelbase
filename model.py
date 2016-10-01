@@ -16,6 +16,8 @@ import itertools
 
 import re
 
+import pickle
+
 
 def idx(list):
     return {it: id for id, it in enumerate(list)}
@@ -136,6 +138,26 @@ class Model(object):
         self.rateFn = {}
         self.stoichiometries = {}
         self.cpdIdDict = {}
+
+
+    def store(self, filename):
+        '''
+        stores the parameters to file FILENAME
+        :input filename: FILENAME
+        '''
+        f = open(filename,'wb')
+        pickle.dump(self.par, f)
+        f.close()
+
+    @classmethod
+    def load(cls, filename):
+        '''
+        loads parameters from file and invokes constructor of corresponding class
+        :input filename: where to load parameters from
+        '''
+        par = pickle.load(open(filename,'rb'))
+        m = cls(pars=par.__dict__)
+        return m
 
 
     def rateNames(self):
@@ -380,7 +402,7 @@ class Model(object):
 
         return epsilon
 
-    def allElasticities(self, y0):
+    def allElasticities(self, y0, norm=False):
         ''' 
         calculates all elasticities:
         :param y0: state vector
@@ -399,6 +421,10 @@ class Model(object):
             jac = nd.Jacobian(vi, step=y0.min()/100)
 
             epsilon[i,:] = jac(y0)
+
+        if norm:
+            v = np.array(self.rates(y0).values())
+            epsilon = (1/v).reshape(len(v),1)*epsilon*y0
 
         return np.matrix(epsilon)
 
@@ -609,29 +635,34 @@ class AlgmModel(Model):
         return names
 
  
-    def allElasticities(self, y0):
+    def allElasticities(self, y0, norm=False):
         ''' 
         calculates all _direct_ elasticities:
         Rates usually depend on a concentration and not directly on a conserved equilbrium module variable.
         Therefore, the partial derivatives of the rate expression itself is zero wrt the equilibrium variable, but non-zero wrt to the concentration.
         :param y0: state vector
         :return: all elasticities as np.matrix
+        # FIXME: more elegant merge with superclass method
         '''
-
+    
         rateIds = self.rateNames()
-
+    
         epsilon = np.zeros([len(rateIds), len(self.allCpdNames())])
-
+    
         z0 = self.fullConcVec(y0)
-
+    
         for i in range(len(rateIds)):
-
+    
             def vi(y):
                 return self.rateFn[rateIds[i]](y)
                 
             jac = nd.Jacobian(vi, step=z0.min()/100)
-
+    
             epsilon[i,:] = jac(z0)
+    
+        if norm:
+            v = np.array(self.rates(z0).values())
+            epsilon = (1/v).reshape(len(v),1)*epsilon*z0
 
         return np.matrix(epsilon)
 
