@@ -9,6 +9,8 @@ import numpy as np
 import scipy.integrate as sci
 import math
 
+import itertools
+
 import numdifftools as nd
 
 class Simulate(object):
@@ -109,10 +111,15 @@ class Simulate(object):
 
         self._successful = True
 
-        Y = [y0]
-        #print Y, type(Y)
+        if y0 is not None:
+            Y = [y0]
+            #print Y, type(Y)
 
-        self.set_initial_value(y0)
+            self.set_initial_value(y0,t0=T[0])
+        else:
+            Y = [np.array(self.integrator.y)]
+            if T[0] == 0:
+                T += self.integrator.t
 
         cnt = 1
         while cnt < len(T) and self.successful():
@@ -229,6 +236,18 @@ class Simulate(object):
 
         return T
 
+    def getY(self, r=None):
+        """
+        :param r: range of steps of simulation for which results we are interested in
+        :return: values of all variables as one array
+        """
+        if r is None:
+            r = range(len(self.results))
+
+        Y = np.vstack([self.results[i]['y'] for i in r])
+        return Y
+
+
     def getVar(self, j, r=None):
         """
         :param j: int of the state variable [0:PQred, ..., 5:ATPsynth]
@@ -242,7 +261,10 @@ class Simulate(object):
         if r is None:
             r = range(len(self.results))
 
-        X = np.vstack([self.results[i]['y'][:,j] for i in r])
+        Y = self.getY(r)
+        X = Y[:,j]
+
+        #X = np.vstack([self.results[i]['y'][:,j] for i in r])
         #X = np.vstack([np.reshape(self.results[i]['y'][:, j],np.size(self.results[i]['y'],0),len(j)) for i in r])
 
         if np.size(X,1) == 1:
@@ -279,6 +301,32 @@ class Simulate(object):
 
 
 
+    def getV(self, r=None):
+
+        if r is None:
+            r = range(len(self.results))
+
+        V = np.array([])
+
+        for i in r:
+            if not self.results[i].has_key('v'):
+                
+                t = self.results[i]['t']
+                y = self.results[i]['y']
+                rlist = self.model.rateNames()
+
+                Vnew = []
+                for j in range(len(t)):
+                    vd = self.model.rates(y[j])
+                    vt = np.array([vd[k] for k in rlist])
+                    Vnew.append(vt)
+
+                self.results[i]['v'] = np.vstack(Vnew)
+
+        V = np.vstack([self.results[i]['v'] for i in r])
+        return V
+
+                       
     def getRate(self, rate, r=None):
         """
         :param rate: name of the rate
@@ -303,7 +351,145 @@ class Simulate(object):
 
 
 
+         
+
+class AlgmSimulate(Simulate):
+    '''
+    subclass of Simulate, including access to derived Variables
+    '''
+
+    def getY(self, r=None):
+        """
+        :param r: range of steps of simulation for which results we are interested in
+        :return: values of all variables (including algModel derived) as one array
+        """
+        Y = super(AlgmSimulate,self).getY(r)
+        Yfull = self.model.fullConcVec(Y)
+        return Yfull
+
+
+
+
+
+
+class LabelSimulate(AlgmSimulate):
+    '''
+    subclass of Simulate, including several access methods for labels
+    '''
+
+    def getTotal(self, cpdBaseName, r=None):
+        '''
+        retrieves total concentration for compound cpdBaseName
+        :param cpdBaseName: base name of compound
+        :return: vector with concentrations
+        '''
+
+        if r is None:
+            r = range(len(self.results))
+        
+        c = self.model.cpdBaseNames[cpdBaseName]
+
+        regexp = "\A" + cpdBaseName + '.' * c + "\Z"
+
+        Y = self.getVarsByRegexp(regexp, r)
+
+        return Y.sum(1)
+
+    def getLabelAtPos(self, cpdBaseName, lpos, r=None):
+        '''
+        retrieves total of cpdBaseName where label is at lpos
+        :param cpdBaseName: base name of compound
+        :param lpos: position of label
+        :return: vector with concentrations
+        '''
+
+        if r is None:
+            r = range(len(self.results))
+        
+        if type(lpos) == int:
+            lpos = [lpos]
+
+        c = self.model.cpdBaseNames[cpdBaseName]
+
+        l = ['.'] * c
+        for p in lpos:
+            l[p] = '1'
+
+        regexp = "\A" + cpdBaseName + ''.join(l) + "\Z"
+
+        Y = self.getVarsByRegexp(regexp, r)
+
+        return Y.sum(1)
+
+    def getNumLabel(self, cpdBaseName, nlab, r=None):
+        '''
+        retrieves total of cpdBaseName with exactly nlab labels
+        :param cpdBaseName: base name of compound
+        :param nlab: numbers of labels
+        :return: vector with concentrations
+        '''
+
+        if r is None:
+            r = range(len(self.results))
+
+        c = self.model.cpdBaseNames[cpdBaseName]
+        
+        lcom = itertools.combinations(range(c),nlab)
+
+        cpdNames = []
+        for i in lcom:
+            l = ['0'] * c
+            for p in i:
+                l[p] = '1'
+            cpdNames.append(cpdBaseName + ''.join(l))
+
+        Y = self.getVarsByName(cpdNames, r)
+
+        return Y.sum(1)
+
+
+    def getTotalLabel(self, cpdBaseName, r=None):
+        '''
+        retrieves total labels of cpdBaseName
+        :param cpdBaseName: base name of compound
+        :return: vector with concentrations
+        '''
+
+        if r is None:
+            r = range(len(self.results))
+
+        c = self.model.cpdBaseNames[cpdBaseName]
+        
+        Ylab = []
+        for lnum in range(1,c):
+            Ylab.append(self.getNumLabel(cpdBaseName, lnum) * lnum)
+
+        return np.vstack(Ylab).sum(0)
+
+    
+    def getTotalRate(self, rateBaseName, r=None):
+        '''
+        retrieves the sum of all rates starting with 'rateName'
+        :rateBaseName: rateBaseName
+        :return: rate
+        '''
+        if r is None:
+            r = range(len(self.results))
+
+        rid = {v:k for k,v in enumerate(self.model.rateNames())}
+        rsel = []
+        for k,v in rid.items():
+            if k.startswith(rateBaseName):
+                rsel.append(v)
+
+        V = self.getV()[:,rsel].sum(1)
+
+        return V
             
+
+        
+        
+   
     # these two do not belong here, should be part of model.py
     # they have been introduced in model.py but kept here for compatilibity reasons
 
