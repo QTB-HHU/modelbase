@@ -117,7 +117,7 @@ class Simulate(object):
         cnt = 1
         while cnt < len(T) and self.successful():
             if self._warnings:
-                print cnt, Y
+                print(cnt, Y)
                 print(T[cnt])
             Y.append(self.integrate(T[cnt],
                                     minstep=minstep,
