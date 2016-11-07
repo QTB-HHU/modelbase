@@ -739,19 +739,23 @@ class LabelModel(AlgmModel):
         self.add_algebraicModule(tc,labelNames,[cpdName])
 
 
-    def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args):
+    def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args, **kwargs):
         '''
         sets all rates for reactions for all isotope labelling patterns of the substrates.
         Sets all stoichiometries for these reactions.
         requires additionally
         - carbonmap: a list defining how the carbons appear in the products
           (of course, number of Cs must be the same for substrates and products,
-           _except_ if a uniform outflux is defined. Then simply carbonmap=[])
+           _except_ if 
+             1. a uniform outflux is defined. Then simply carbonmap=[])
+             2. extra labels enter the system. Then the pattern is defined by kwargs['extLabels']. Defaults to all labelled.
         - subList: list of substrates
         - prodList: list of products
         - *args: list of arguments required to calculate rate using function fn 
           (including substrates and possibly allosteric effectors). 
           In this list, substrate names MUST come first
+        - **kwargs: required to
+             - define extra lables. Key 'extLabels', Value: list of labels, starting with 0
 
         examples for carbon maps:
         TPI: GAP [0,1,2] -> DHAP [2,1,0] (order changes here), carbonmap = [2,1,0]
@@ -772,7 +776,14 @@ class LabelModel(AlgmModel):
 
         extLabels = ''
         if cp.sum() > cs.sum(): # this means labels are introduced to the system
-            extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
+            nrExtLabels = cp.sum() - cs.sum()
+            if kwargs.has_key('extLabels'):
+                extLabelList = ['0'] * nrExtLabels
+                for extL in kwargs['extLabels']:
+                    extLabelList[extL] = '1'
+                extLabels = ''.join(extLabelList)
+            else:
+                extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
 
         for l in rateLabels: # loop through all patterns
             print l
