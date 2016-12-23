@@ -241,7 +241,7 @@ class Model(object):
         '''
         cids = self.cpdIds()
         reids = []
-        for cpdName in self.cpdNames:
+        for cpdName in cids.keys():
             if re.match(regexp,cpdName):
                 reids.append(cids[cpdName])
         return np.array(reids)
@@ -607,6 +607,9 @@ class AlgmModel(Model):
             zam = ammod['am'].getConcentrations(zin)
 
             #cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
+
+            #if len(zam.shape) == 1:
+            #    zam = zam[:,np.newaxis]
 
             z = np.hstack([z,zam])
             #cpdids = dict(cpdids, **cpdidsam)
