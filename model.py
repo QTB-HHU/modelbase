@@ -2,7 +2,6 @@ __author__ = 'oliver'
 
 
 
-
 import modelbase.parameters
 from modelbase.algebraicModule import AlgebraicModule
 
@@ -718,6 +717,7 @@ class LabelModel(AlgmModel):
     cpdName (string) and c (int) specifying number of carbon atoms
     '''
 
+
     def __init__(self, pars={}, defaultpars={}):
         super(LabelModel,self).__init__(pars,defaultpars)
         self.cpdBaseNames = {}
@@ -772,7 +772,7 @@ class LabelModel(AlgmModel):
 
         # get all args from *args that are not substrates (can be passed directly)
         otherargs = list(args[len(cs):len(args)])
-        print "otherargs:", otherargs
+        #print "otherargs:", otherargs
 
         # get all possible combinations of label patterns for substrates
         rateLabels = generateLabelCpds('',cs.sum())
@@ -789,21 +789,21 @@ class LabelModel(AlgmModel):
                 extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
 
         for l in rateLabels: # loop through all patterns
-            print l
+            #print l
             pl = mapCarbons(l+extLabels, carbonmap) # get product labels
             sublabels = splitLabel(l, cs)
             prodlabels = splitLabel(pl, cp)
 
             subargs = [args[i]+sublabels[i] for i in range(len(cs))]
-            print subargs
+            #print subargs
             prodargs = [prodList[i]+prodlabels[i] for i in range(len(cp))]
-            print prodargs
+            #print prodargs
 
             rateName = rateBaseName+l
 
             # set rate
             rateargs = subargs+otherargs
-            print rateargs
+            #print rateargs
             self.set_rate(rateName, fn, *rateargs)
 
             # set stoichiometry dictionary
@@ -815,7 +815,7 @@ class LabelModel(AlgmModel):
                 else:
                     stDict[k] = 1
             #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
-            print stDict
+            #print stDict
             self.set_stoichiometry(rateName, stDict)
             
 
