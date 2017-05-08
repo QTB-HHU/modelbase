@@ -13,6 +13,8 @@ import itertools
 
 import numdifftools as nd
 
+import pickle
+
 class Simulate(object):
 
     def __init__(self, model, **kwargs):
@@ -40,6 +42,24 @@ class Simulate(object):
     def clearResults(self):
         self.results = []
 
+    def storeResults(self, filename):
+        '''
+        stores the parameters to file FILENAME
+        :input filename: FILENAME
+        '''
+        f = open(filename,'wb')
+        pickle.dump(self.results, f)
+        f.close
+
+    def loadResults(self, filename):
+        '''
+        loads results from file and stores in results attribute
+        NOTE: overrides old results
+        '''
+        res = pickle.load(open(filename,'rb'))
+        self.results = res
+
+
     def generate_integrator(self, integrator='lsoda', max_step=0.1, nsteps=500):
         '''
         generates a sci.ode object used for integration
@@ -55,6 +75,14 @@ class Simulate(object):
         '''
         self.integrator.set_initial_value(y0, t0)
         self.integrator.set_f_params(self.model)
+
+    def set_initial_value_to_last(self):
+        '''
+        initialises the sci.ode integrator to last values stored in results
+        '''
+        tlast = self.getT()[-1]
+        ylast = self.getVarsByName(self.model.cpdNames)[-1,:]
+        self.set_initial_value(ylast, tlast)
 
 
     def integrate(self, t, minstep=1e-8, maxstep=0.1, nsteps=500):
@@ -104,12 +132,14 @@ class Simulate(object):
         return r.y
 
 
-    def timeCourse(self, T, y0, integrator='lsoda', minstep=1e-8, maxstep=0.1, nsteps=500):
+    def timeCourse(self, Torig, y0, integrator='lsoda', minstep=1e-8, maxstep=0.1, nsteps=500):
         """ integration over time, different integrators possible, lsoda default
             returns: array of state variables
         """
 
         self._successful = True
+
+        T = Torig.copy()
 
         if y0 is not None:
             Y = [y0]
