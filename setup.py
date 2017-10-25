@@ -11,7 +11,8 @@ setup(name='modelbase',
       install_requires=[
           'numpy',
           'scipy',
-          'numdifftools'
+          'numdifftools',
+          'matplotlib'
           #'itertools',
           #'re',
           #'pickle'

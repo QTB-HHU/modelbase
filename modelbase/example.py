@@ -38,9 +38,11 @@ if __name__ == '__main__':
 
     #r = modelbase.results.Results(s)
 
+    #plt.interactive(True)
     plt.figure()
     plt.plot(s.getT(),s.getVar([0,1]))
     plt.draw()
+    plt.show()
 
-    print "OK!"
+    print("OK!")
 
