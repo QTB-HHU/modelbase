@@ -2,7 +2,6 @@ __author__ = 'oliver'
 
 
 
-
 import modelbase.parameters
 from modelbase.algebraicModule import AlgebraicModule
 
@@ -241,7 +240,7 @@ class Model(object):
         '''
         cids = self.cpdIds()
         reids = []
-        for cpdName in self.cpdNames:
+        for cpdName in cids.keys():
             if re.match(regexp,cpdName):
                 reids.append(cids[cpdName])
         return np.array(reids)
@@ -608,6 +607,9 @@ class AlgmModel(Model):
 
             #cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
 
+            #if len(zam.shape) == 1:
+            #    zam = zam[:,np.newaxis]
+
             z = np.hstack([z,zam])
             #cpdids = dict(cpdids, **cpdidsam)
             #vlist.append(ammod['am'].getConcentrations(y[varids]))
@@ -715,6 +717,7 @@ class LabelModel(AlgmModel):
     cpdName (string) and c (int) specifying number of carbon atoms
     '''
 
+
     def __init__(self, pars={}, defaultpars={}):
         super(LabelModel,self).__init__(pars,defaultpars)
         self.cpdBaseNames = {}
@@ -739,19 +742,23 @@ class LabelModel(AlgmModel):
         self.add_algebraicModule(tc,labelNames,[cpdName])
 
 
-    def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args):
+    def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args, **kwargs):
         '''
         sets all rates for reactions for all isotope labelling patterns of the substrates.
         Sets all stoichiometries for these reactions.
         requires additionally
         - carbonmap: a list defining how the carbons appear in the products
           (of course, number of Cs must be the same for substrates and products,
-           _except_ if a uniform outflux is defined. Then simply carbonmap=[])
+           _except_ if 
+             1. a uniform outflux is defined. Then simply carbonmap=[])
+             2. extra labels enter the system. Then the pattern is defined by kwargs['extLabels']. Defaults to all labelled.
         - subList: list of substrates
         - prodList: list of products
         - *args: list of arguments required to calculate rate using function fn 
           (including substrates and possibly allosteric effectors). 
           In this list, substrate names MUST come first
+        - **kwargs: required to
+             - define extra lables. Key 'extLabels', Value: list of labels, starting with 0
 
         examples for carbon maps:
         TPI: GAP [0,1,2] -> DHAP [2,1,0] (order changes here), carbonmap = [2,1,0]
@@ -765,31 +772,38 @@ class LabelModel(AlgmModel):
 
         # get all args from *args that are not substrates (can be passed directly)
         otherargs = list(args[len(cs):len(args)])
-        print "otherargs:", otherargs
+        #print "otherargs:", otherargs
 
         # get all possible combinations of label patterns for substrates
         rateLabels = generateLabelCpds('',cs.sum())
 
         extLabels = ''
         if cp.sum() > cs.sum(): # this means labels are introduced to the system
-            extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
+            nrExtLabels = cp.sum() - cs.sum()
+            if kwargs.has_key('extLabels'):
+                extLabelList = ['0'] * nrExtLabels
+                for extL in kwargs['extLabels']:
+                    extLabelList[extL] = '1'
+                extLabels = ''.join(extLabelList)
+            else:
+                extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
 
         for l in rateLabels: # loop through all patterns
-            print l
+            #print l
             pl = mapCarbons(l+extLabels, carbonmap) # get product labels
             sublabels = splitLabel(l, cs)
             prodlabels = splitLabel(pl, cp)
 
             subargs = [args[i]+sublabels[i] for i in range(len(cs))]
-            print subargs
+            #print subargs
             prodargs = [prodList[i]+prodlabels[i] for i in range(len(cp))]
-            print prodargs
+            #print prodargs
 
             rateName = rateBaseName+l
 
             # set rate
             rateargs = subargs+otherargs
-            print rateargs
+            #print rateargs
             self.set_rate(rateName, fn, *rateargs)
 
             # set stoichiometry dictionary
@@ -801,7 +815,7 @@ class LabelModel(AlgmModel):
                 else:
                     stDict[k] = 1
             #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
-            print stDict
+            #print stDict
             self.set_stoichiometry(rateName, stDict)
             
 

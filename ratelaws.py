@@ -42,6 +42,22 @@ def reversibleMassActionBiUni(kf,eq):
     return _rateLaw
 
                             
+def reversibleMassActionUniBi(kf,eq):
+
+    def _rateLaw(p,x,y,z):
+        return getattr(p,kf)*(x-y*z/getattr(p,eq))
+
+    return _rateLaw
+
+                            
+def reversibleMassActionBiBi(kf,eq):
+
+    def _rateLaw(p,a,b,c,d):
+        return getattr(p,kf)*(a*b-c*d/getattr(p,eq))
+
+    return _rateLaw
+
+                            
 def irrMMnoncompInh(k_Vmax,k_KM,k_KI):
 
     def _rateLaw(p,X,I):
