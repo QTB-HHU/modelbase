@@ -12,8 +12,8 @@ setup(name='modelbase',
           'numpy',
           'scipy',
           'numdifftools'
-          'itertools',
-          're',
-          'pickle'
+          #'itertools',
+          #'re',
+          #'pickle'
       ],
       zip_safe=False)
