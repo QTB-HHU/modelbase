@@ -677,34 +677,34 @@ class AlgmModel(Model):
 ###### class LabelModel #################################################################
 
 
-def generateLabelCpds(cpdName, c):
-    '''
-    generates label versions of a compound.
-    input: string cpdName, int c (number of carbon atoms)
-    output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
-    '''
-
-    cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
-
-    return cpdList
-
-def mapCarbons(sublabels, carbonmap):
-    '''
-    generates a redistributed string for the substrates (sublabels) according to carbonmap
-    '''
-    prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
-    return prodlabels
-
-def splitLabel(label, numc):
-    '''
-    splits the label string according to the lengths given in the list/vector numc
-    '''
-    splitlabels = []
-    cnt = 0
-    for i in range(len(numc)):
-        splitlabels.append(label[cnt:cnt+numc[i]])
-        cnt += numc[i]
-    return splitlabels
+#def generateLabelCpds(cpdName, c):
+#    '''
+#    generates label versions of a compound.
+#    input: string cpdName, int c (number of carbon atoms)
+#    output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
+#    '''
+#
+#    cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
+#
+#    return cpdList
+#
+#def mapCarbons(sublabels, carbonmap):
+#    '''
+#    generates a redistributed string for the substrates (sublabels) according to carbonmap
+#    '''
+#    prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
+#    return prodlabels
+#
+#def splitLabel(label, numc):
+#    '''
+#    splits the label string according to the lengths given in the list/vector numc
+#    '''
+#    splitlabels = []
+#    cnt = 0
+#    for i in range(len(numc)):
+#        splitlabels.append(label[cnt:cnt+numc[i]])
+#        cnt += numc[i]
+#    return splitlabels
 
 
 class LabelModel(AlgmModel):
@@ -713,9 +713,47 @@ class LabelModel(AlgmModel):
     
     Important information on usage:
     -------------------------------
-    Compounds must be added with the add_cpd method, which here takes two arguments:
+    Compounds must be added with the add_base_cpd method, which here takes two arguments:
     cpdName (string) and c (int) specifying number of carbon atoms
     '''
+
+
+    # some important static methods
+
+    @staticmethod
+    def generateLabelCpds(cpdName, c):
+        '''
+        generates label versions of a compound.
+        input: string cpdName, int c (number of carbon atoms)
+        output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
+        '''
+    
+        cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
+    
+        return cpdList
+
+    @staticmethod    
+    def mapCarbons(sublabels, carbonmap):
+        '''
+        generates a redistributed string for the substrates (sublabels) according to carbonmap
+        '''
+        prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
+        return prodlabels
+    
+    @staticmethod
+    def splitLabel(label, numc):
+        '''
+        splits the label string according to the lengths given in the list/vector numc
+        '''
+        splitlabels = []
+        cnt = 0
+        for i in range(len(numc)):
+            splitlabels.append(label[cnt:cnt+numc[i]])
+            cnt += numc[i]
+        return splitlabels
+
+
+
 
 
     def __init__(self, pars={}, defaultpars={}):
@@ -730,7 +768,7 @@ class LabelModel(AlgmModel):
         :param c: number of C atoms
         '''
         self.cpdBaseNames[cpdName] = c
-        labelNames = generateLabelCpds(cpdName,c)
+        labelNames = self.generateLabelCpds(cpdName,c)
         super(LabelModel,self).add_cpds(labelNames) # add all labelled names
 
         # now define an algebraic module for the sum of all labels
@@ -775,7 +813,7 @@ class LabelModel(AlgmModel):
         #print "otherargs:", otherargs
 
         # get all possible combinations of label patterns for substrates
-        rateLabels = generateLabelCpds('',cs.sum())
+        rateLabels = self.generateLabelCpds('',cs.sum())
 
         extLabels = ''
         if cp.sum() > cs.sum(): # this means labels are introduced to the system
@@ -790,9 +828,9 @@ class LabelModel(AlgmModel):
 
         for l in rateLabels: # loop through all patterns
             #print l
-            pl = mapCarbons(l+extLabels, carbonmap) # get product labels
-            sublabels = splitLabel(l, cs)
-            prodlabels = splitLabel(pl, cp)
+            pl = self.mapCarbons(l+extLabels, carbonmap) # get product labels
+            sublabels = self.splitLabel(l, cs)
+            prodlabels = self.splitLabel(pl, cp)
 
             subargs = [args[i]+sublabels[i] for i in range(len(cs))]
             #print subargs

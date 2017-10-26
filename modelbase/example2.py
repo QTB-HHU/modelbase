@@ -3,7 +3,6 @@ __author__ = 'oliver'
 if __name__ == '__main__':
 
     import modelbase.model
-    import modelbase.algmModel
     import modelbase.simulate
     import modelbase.algebraicModule
 
@@ -11,11 +10,13 @@ if __name__ == '__main__':
 
     import numpy as np
 
+    print("Example 2 started...")
+
 
     cl = ['A']
     p = {'v0':1,'k2':0.1}
 
-    m = modelbase.algmModel.AlgmModel(p)
+    m = modelbase.model.AlgmModel(p)
 
     m.set_cpds(cl)
 
@@ -48,5 +49,5 @@ if __name__ == '__main__':
     plt.plot(s.getT(),xy)
     plt.draw()
 
-    print "OK!"
+    print("OK!")
 

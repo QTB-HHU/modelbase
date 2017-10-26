@@ -10,6 +10,7 @@ if __name__ == '__main__':
 
     import numpy as np
 
+    print("Example 1 started...")
 
     cl = ['X','Y']
     p = {'v0':1,'k1p':0.5,'k1m':1,'k2':0.1}

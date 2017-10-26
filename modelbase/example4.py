@@ -9,7 +9,6 @@ Exploits algebraicModule for conserved quantitites.
 if __name__ == '__main__':
 
     import modelbase.model
-    import modelbase.algmModel
     import modelbase.simulate
     import modelbase.algebraicModule
 
@@ -17,11 +16,13 @@ if __name__ == '__main__':
 
     import numpy as np
 
+    print("Example 4 started...")
+
 
     cl = ['X','Y','Z']
     p = {'l':.5, 'k1':1., 'k2':1., 'k3':1., 'p':.5}
 
-    m = modelbase.algmModel.AlgmModel(p)
+    m = modelbase.model.AlgmModel(p)
 
     m.set_cpds(cl)
 
@@ -74,5 +75,5 @@ if __name__ == '__main__':
     plt.plot(s.getT(),s.getVar([0,1,2]))
     plt.draw()
 
-    print "OK!"
+    print("OK!")
 

@@ -13,6 +13,8 @@ if __name__ == '__main__':
 
     import numpy as np
 
+    print("Example 3 started...")
+
 
     cl = ['X']
     p = {'l':1,'k':0.1}
@@ -40,5 +42,5 @@ if __name__ == '__main__':
     plt.plot(s.getT(),s.getVar([0]))
     plt.draw()
 
-    print "OK!"
+    print("OK!")
 
