@@ -56,8 +56,9 @@ if __name__ == '__main__':
     y0d = {'GAP': GAP0,
            'DHAP': DHAP0,
            'FBP': FBP0}
-    y0 = m.set_initconc_cpd_labelpos(y0d,labelpos={'GAP':0})
     
+    # simulate equilibration of the labels
+    y0 = m.set_initconc_cpd_labelpos(y0d,labelpos={'GAP':0})
     s = sim.LabelSimulate(m)
     T = np.linspace(0,20,1000)
     s.timeCourse(T,y0)
@@ -65,8 +66,31 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(s.getT(),np.vstack([s.getLabelAtPos('FBP',i) for i in range(6)]).transpose())
     plt.legend([str(i+1) for i in range(6)])
-    plt.title("Label in FBP")
+    plt.title("Label in FBP positions - equilibration")
+    plt.show()
     plt.draw_if_interactive()
     
+    # now simulate steady influx of label into GAP, position 0
+    kout = 0.05
+    vin = 2*9e-5*kout
+    m.par.update({'vin':vin,'kout':kout})
+    
+    m.set_rate('vin',lambda p:p.vin)
+    m.set_stoichiometry('vin',{'GAP100':1})
+    
+    def vout(p,y):
+        return rl.massAction(p.kout,y)
+    m.add_carbonmap_reaction('vout',vout,[0,1,2,3,4,5],['FBP'],[],'FBP')
+    
+    y0 = m.set_initconc_cpd_labelpos(y0d)
+    T = np.linspace(0,100,1000)
+    s2 = sim.LabelSimulate(m)
+    s2.timeCourse(T,y0)
+
+    plt.plot(s2.getT(),np.vstack([s2.getLabelAtPos('FBP',i)/s2.getTotal('FBP') for i in range(6)]).transpose())
+    plt.legend([str(i+1) for i in range(6)])
+    plt.title("Relative label in FBP - dynamic influx of label, steady state")
+    plt.draw_if_interactive()
+       
     print("OK!")
     

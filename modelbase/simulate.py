@@ -11,7 +11,7 @@ import math
 
 import itertools
 
-import numdifftools as nd
+#import numdifftools as nd
 
 import pickle
 
