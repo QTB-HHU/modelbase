@@ -6,6 +6,20 @@ Created on Thu Oct 26 13:23:32 2017
 @author: oliver
 """
 
+"""
+This example illustrates how to construct an isotope-label specific model.
+
+The first example simulates the equilibration of isotope distribution in the 
+aldolase reaction.
+Included reactions are triose-phosphate isomerase and fructose-bisphosphate aldolase:
+    GAP <=> DHAP
+    GAP + DHAP <=> FBP
+    
+The second example starts with unlabelled intermediates and simulates a 
+constant influx of label into the 1/position of GAP, and a mass-action outflux
+of FBP (all isotope variants)
+"""
+
 if __name__ == '__main__':
 
     import modelbase.model as mod
@@ -18,20 +32,31 @@ if __name__ == '__main__':
 
     print("Example 5 started...")
 
+    # instantiate model
     m = mod.LabelModel()
     
+    #define parameters
     m.par.update({'kf_TPI': 1.0,
                   'Keq_TPI': 21.0,
                   'kf_Ald': 2000.0,
                   'Keq_Ald': 7000.0})
     
+    # set the 'base' compounds. Second argument defines numbers of carbons
+    # these will be automatically expanded into 8 (=2^3), 8, and 64 (=2^6) 
+    # isotope variants, respectively
     m.add_base_cpd('GAP',3)
     m.add_base_cpd('DHAP',3)
     m.add_base_cpd('FBP',6)
 
+    # define a simple mass-action rate-law for the forward TPI reaction
+    # GAP -> DHAP
     def v1f(p,y):
         return rl.massAction(p.kf_TPI,y)
 
+    # tell the model this is a carbon map reaction
+    # arguments:
+    # name, rate function, carbon map (here the numbers are reversed!),
+    # list of substrates, list of products, variables to be passed
     m.add_carbonmap_reaction('TPIf',v1f,[2,1,0],['GAP'],['DHAP'],'GAP')
 
     def v1r(p,y):
@@ -75,6 +100,8 @@ if __name__ == '__main__':
     vin = 2*9e-5*kout
     m.par.update({'vin':vin,'kout':kout})
     
+    # influx reaction is simulated as a 'normal' reaction 
+    # generating a GAP with label in 1-position (GAP100)
     m.set_rate('vin',lambda p:p.vin)
     m.set_stoichiometry('vin',{'GAP100':1})
     

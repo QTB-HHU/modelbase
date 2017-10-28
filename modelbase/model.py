@@ -183,7 +183,7 @@ class Model(object):
         adds a single compound with name cpdName (string) to cpdNames
         if it does not yet exist
         '''
-        if not self.cpdIds().has_key(cpdName):
+        if cpdName not in self.cpdIds():
             self.cpdNames.append(cpdName)
             self.updateCpdIds()
 
@@ -818,7 +818,7 @@ class LabelModel(AlgmModel):
         extLabels = ''
         if cp.sum() > cs.sum(): # this means labels are introduced to the system
             nrExtLabels = cp.sum() - cs.sum()
-            if kwargs.has_key('extLabels'):
+            if 'extLabels' in kwargs:
                 extLabelList = ['0'] * nrExtLabels
                 for extL in kwargs['extLabels']:
                     extLabelList[extL] = '1'
@@ -848,7 +848,7 @@ class LabelModel(AlgmModel):
             # FIXME think about the possibility that a stoichiometry is not +/-1...
             stDict = {k:-1 for k in subargs}
             for k in prodargs:
-                if stDict.has_key(k):
+                if k in stDict:
                     stDict[k] += 1
                 else:
                     stDict[k] = 1
@@ -880,9 +880,9 @@ class LabelModel(AlgmModel):
         y0 = m.set_initconc_cpd_labelpos({'GAP':1,'DHAP':20,'FBP':4},{'GAP':0})
         '''
         y0 = np.zeros(len(self.cpdNames))
-        for cpd, c in self.cpdBaseNames.iteritems():
+        for cpd, c in self.cpdBaseNames.items():
             labels = ['0'] * c
-            if labelpos.has_key(cpd):
+            if cpd in labelpos:
                 labels[labelpos[cpd]] = '1'
             cpdName = cpd+''.join(labels)
             y0[self.get_argids(cpdName)] = y0dict[cpd]

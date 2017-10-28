@@ -12,7 +12,6 @@ if __name__ == '__main__':
 
     import modelbase.model
     import modelbase.simulate
-    #import modelbase.results
 
     import matplotlib.pyplot as plt
 
@@ -62,12 +61,15 @@ if __name__ == '__main__':
 
     #r = modelbase.results.Results(s)
 
-    #plt.interactive(True)
+    plt.interactive(True)
     plt.figure()
     plt.plot(s.getT(),s.getY())
     plt.legend(m.cpdNames)
-    plt.draw()
+    plt.draw_if_interactive()
     plt.show()
+    #plt.savefig("/tmp/test.png")
 
+    #print(s.getY())
+    #input("Press enter to continue")
     print("OK!")
 
