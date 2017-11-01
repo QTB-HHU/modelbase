@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(name='modelbase',
-      version='0.1.3',
+      version='0.1.4',
       description='A package to build metabolic models',
-      url='https://git.hhu.de/kinetic-models/modelbase',
+      url='https://gitlab.com/ebenhoeh/modelbase',
       author='Oliver Ebenhoeh',
       author_email='oliver.ebenhoeh@hhu.de',
       license='GPL4',

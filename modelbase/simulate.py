@@ -185,7 +185,7 @@ class Simulate(object):
         self.set_initial_value(Y0, t0=T)
 
         while self.successful() and cnt < maxstep and err > AbsTol:
-            Y = self.integrate(T+step, t0=T)
+            Y = self.integrate(T+step)
             T += step
             cnt += 1
             err = np.linalg.norm(Y-Y0, ord=2)
