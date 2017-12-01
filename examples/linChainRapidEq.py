@@ -14,9 +14,8 @@ Approach:
 
 if __name__ == '__main__':
 
-    import modelbase.model
-    import modelbase.simulate
-    import modelbase.algebraicModule
+    import modelbase
+    #import modelbase.algebraicModule
 
     import matplotlib.pyplot as plt
 
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     p = {'v0':1,'k2':0.1}
 
     # instantiate model as AlgmModel (because it uses an algebraic module)
-    m = modelbase.model.AlgmModel(p)
+    m = modelbase.AlgmModel(p)
 
     m.set_cpds(cl)
 
@@ -61,7 +60,7 @@ if __name__ == '__main__':
 
 
     # use the AlgmSimulate class to get access to the variables X and Y
-    s = modelbase.simulate.AlgmSimulate(m)
+    s = modelbase.AlgmSimulate(m)
     s.timeCourse(np.linspace(0,100,1000),np.zeros(1))
 
     #a = s.getVar([0])

@@ -27,9 +27,7 @@ Algebraic modules calculate {XYZ}i from {XYZ}
 
 if __name__ == '__main__':
 
-    import modelbase.model
-    import modelbase.simulate
-    import modelbase.algebraicModule
+    import modelbase
 
     import matplotlib.pyplot as plt
 
@@ -43,7 +41,7 @@ if __name__ == '__main__':
     p = {'l':.5, 'k1':1., 'k2':1., 'k3':1., 'p':.5}
 
     # instantiate model
-    m = modelbase.model.AlgmModel(p)
+    m = modelbase.AlgmModel(p)
 
     m.set_cpds(cl)
 
@@ -92,7 +90,7 @@ if __name__ == '__main__':
     m.set_rate('p3',phosph,'Z')
     m.set_stoichiometry('p3',{'Z':-1})
 
-    s = modelbase.simulate.Simulate(m)
+    s = modelbase.Simulate(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(3))
 
     plt.figure()

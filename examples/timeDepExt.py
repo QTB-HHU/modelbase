@@ -9,8 +9,7 @@ Outflux is mass-action
 
 if __name__ == '__main__':
 
-    import modelbase.model
-    import modelbase.simulate
+    import modelbase
 
     import matplotlib.pyplot as plt
 
@@ -24,7 +23,7 @@ if __name__ == '__main__':
     p = {'l':1,'k':0.1}
 
     # instantiate model
-    m = modelbase.model.Model(p)
+    m = modelbase.Model(p)
 
     m.set_cpds(cl)
 
@@ -43,12 +42,13 @@ if __name__ == '__main__':
     m.set_rate('v1',v1,'X')
     m.set_stoichiometry('v1',{'X':-1})
 
-    s = modelbase.simulate.Simulate(m)
+    s = modelbase.Simulate(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(1))
 
     plt.figure()
     plt.plot(s.getT(),s.getVar([0]))
-    plt.draw()
+    plt.draw_if_interactive()
+    plt.show()
 
     print("OK!")
 

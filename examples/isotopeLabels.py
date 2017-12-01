@@ -22,10 +22,9 @@ of FBP (all isotope variants)
 
 if __name__ == '__main__':
 
-    import modelbase.model as mod
-    import modelbase.simulate as sim
+    import modelbase
     import modelbase.ratelaws as rl
-    
+
     import matplotlib.pyplot as plt
 
     import numpy as np
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     print("Example 5 started...")
 
     # instantiate model
-    m = mod.LabelModel()
+    m = modelbase.LabelModel()
     
     #define parameters
     m.par.update({'kf_TPI': 1.0,
@@ -84,7 +83,7 @@ if __name__ == '__main__':
     
     # simulate equilibration of the labels
     y0 = m.set_initconc_cpd_labelpos(y0d,labelpos={'GAP':0})
-    s = sim.LabelSimulate(m)
+    s = modelbase.LabelSimulate(m)
     T = np.linspace(0,20,1000)
     s.timeCourse(T,y0)
     
@@ -111,13 +110,14 @@ if __name__ == '__main__':
     
     y0 = m.set_initconc_cpd_labelpos(y0d)
     T = np.linspace(0,100,1000)
-    s2 = sim.LabelSimulate(m)
+    s2 = modelbase.LabelSimulate(m)
     s2.timeCourse(T,y0)
 
     plt.plot(s2.getT(),np.vstack([s2.getLabelAtPos('FBP',i)/s2.getTotal('FBP') for i in range(6)]).transpose())
     plt.legend([str(i+1) for i in range(6)])
     plt.title("Relative label in FBP - dynamic influx of label, steady state")
     plt.draw_if_interactive()
-       
+    plt.show()
+
     print("OK!")
     

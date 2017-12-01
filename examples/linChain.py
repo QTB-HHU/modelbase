@@ -10,8 +10,7 @@ Reactions:
 
 if __name__ == '__main__':
 
-    import modelbase.model
-    import modelbase.simulate
+    import modelbase
 
     import matplotlib.pyplot as plt
 
@@ -25,7 +24,7 @@ if __name__ == '__main__':
     p = {'v0':1,'k1p':0.5,'k1m':1,'k2':0.1}
 
     # instantiate model
-    m = modelbase.model.Model(p)
+    m = modelbase.Model(p)
 
     # tell it which metabolites it has
     m.set_cpds(cl)
@@ -55,13 +54,13 @@ if __name__ == '__main__':
     # do the simulation: create Simulate object, perform simulations
     
     # create modelbase.simulate.Simulate object
-    s = modelbase.simulate.Simulate(m)
+    s = modelbase.Simulate(m)
     # run a timecourse
     s.timeCourse(np.linspace(0,100,1000),np.zeros(2))
 
     #r = modelbase.results.Results(s)
 
-    plt.interactive(True)
+    #plt.interactive(True)
     plt.figure()
     plt.plot(s.getT(),s.getY())
     plt.legend(m.cpdNames)

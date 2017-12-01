@@ -18,9 +18,6 @@ import re
 import pickle
 
 
-def idx(list):
-    return {it: id for id, it in enumerate(list)}
-
 
 class Model(object):
     '''The base class for modelling. Provides basic functionality.
@@ -131,6 +128,11 @@ class Model(object):
     functionalities are provided in the other example{i}.py files
     '''
 
+    @staticmethod
+    def idx(list):
+        return {it: id for id, it in enumerate(list)}
+
+
     def __init__(self, pars={}, defaultpars={}):
         self.par = modelbase.parameters.ParameterSet(pars,defaultpars)
         self.cpdNames = []
@@ -168,7 +170,7 @@ class Model(object):
         updates self.cpdIdDict. Only needed after modification of model
         structure, e.g. by set_cpds, add_cpd and add_cpds
         '''
-        self.cpdIdDict = idx(self.cpdNames)
+        self.cpdIdDict = self.idx(self.cpdNames)
 
     def set_cpds(self,cpdList):
         '''
@@ -201,7 +203,7 @@ class Model(object):
         returns the stoichiometry matrix
         '''
 
-        cid = idx(self.cpdNames)
+        cid = self.idx(self.cpdNames)
         #print cid
         rn = self.rateNames()
     
@@ -522,7 +524,7 @@ class AlgmModel(Model):
         updates self.cpdIdDict. Only needed after modification of model
         structure, e.g. by set_cpds, add_cpd and add_cpds
         '''
-        cpdIdDict = idx(self.cpdNames)
+        cpdIdDict = self.idx(self.cpdNames)
         cnt = len(self.cpdNames)
 
         for ammod in self.algebraicModules:

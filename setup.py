@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='modelbase',
-      version='0.1.4',
+      version='0.1.5',
       description='A package to build metabolic models',
       url='https://gitlab.com/ebenhoeh/modelbase',
       author='Oliver Ebenhoeh',
