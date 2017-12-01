@@ -162,7 +162,7 @@ class Model(object):
 
 
     def rateNames(self):
-        return self.stoichiometries.keys()
+        return list(self.stoichiometries.keys())
 
 
     def updateCpdIds(self):
