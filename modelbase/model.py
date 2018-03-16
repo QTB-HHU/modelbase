@@ -17,6 +17,10 @@ import re
 
 import pickle
 
+from collections import defaultdict
+
+import pprint
+
 
 
 class Model(object):
@@ -37,16 +41,16 @@ class Model(object):
     Mini tutorial
     =============
 
-    Every model is defined by 
+    Every model is defined by
     - model parameters
     - model variables
     - rate equations
     - stoichiometries
 
-    Example: A chemical reaction chain 
+    Example: A chemical reaction chain
 
     -> X -> Y ->
-    
+
     Two variables "X", "Y"
 
     Three parameters: influx (v0), rate constant conversion X->Y (k1),
@@ -110,15 +114,15 @@ class Model(object):
     Last thing is to set the stoichiometries:
 
     m.set_stoichiometry('v0',{'X':1})
-    
+
     m.set_stoichiometry('v1',{'X':-1,'Y':1})
-    
+
     m.set_stoichiometry('v2',{'Y':-1})
 
     Simulation and Plot:
 
     s = Simulate(m)
-    
+
     T = np.linspace(0,100,1000)
     Y = s.timeCourse(T,np.zeros(3))
 
@@ -206,7 +210,7 @@ class Model(object):
         cid = self.idx(self.cpdNames)
         #print cid
         rn = self.rateNames()
-    
+
         N = np.zeros([len(self.cpdNames),len(rn)])
 
         for i in range(len(rn)):
@@ -265,13 +269,13 @@ class Model(object):
         m.rateFn['v1'](np.array([3,2,1]))
         # 1.5
         '''
-        
+
         sids = self.get_argids(*args)
 
 
         if len(sids) == 0:
             # note: the **kwargs is necessary to allow all rates to be called in the same way. It can be empty.
-            def v(y,**kwargs): 
+            def v(y,**kwargs):
                 return fn(self.par)
         else:
             def v(y,**kwargs):
@@ -284,8 +288,8 @@ class Model(object):
 
     def set_ratev(self, rateName, fn, *args):
         '''
-        sets a rate, which depends on additional information. 
-        Difference to set_rate: the rate is called with an additional variable **kwargs. 
+        sets a rate, which depends on additional information.
+        Difference to set_rate: the rate is called with an additional variable **kwargs.
         This always contains time as key 't', and other user-defined stuff that is passed to methods 'model', 'rates'
         Arguments:
         Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
@@ -320,7 +324,7 @@ class Model(object):
     def set_stoichiometry(self, rateName, stDict):
         '''
         sets stoichiometry for rate rateName to values contained in stDict
-        
+
         Example
         -------
         m.set_stoichiometry('v1',{'X':-1,'Y',1})
@@ -329,14 +333,14 @@ class Model(object):
 
         self.stoichiometries[rateName] = stDict
 
-
-    def set_stoichiometry_byCpd(self, cpdName, stDict):
+    def set_stoichiometry_byCpd(self,cpdName,stDict):
         '''
         same as set_stoichiometry, but by compound name
         '''
         for k,v in stDict.items():
+            if k not in self.stoichiometries:
+                self.stoichiometries[k] = {}
             self.stoichiometries[k][cpdName] = v
-
 
 
     def rates(self, y, **kwargs):
@@ -356,8 +360,8 @@ class Model(object):
 
         v = self.rates(y, **kwargs)
         return np.array([v[k] for k in self.stoichiometries.keys()])
-        
-        
+
+
 
     def model(self, y, t, **kwargs):
         '''
@@ -392,7 +396,7 @@ class Model(object):
         y0: state vector
         rate: name of rate for which elasticities shall be determined
         '''
- 
+
         def vi(y):
             v = self.rates(y)
             return v[rate]
@@ -404,7 +408,7 @@ class Model(object):
         return epsilon
 
     def allElasticities(self, y0, norm=False):
-        ''' 
+        '''
         calculates all elasticities:
         :param y0: state vector
         :return: all elasticities as np.matrix
@@ -418,7 +422,7 @@ class Model(object):
 
             def vi(y):
                 return self.rateFn[rateIds[i]](y)
-                
+
             jac = nd.Jacobian(vi, step=y0.min()/100)
 
             epsilon[i,:] = jac(y0)
@@ -460,7 +464,7 @@ class Model(object):
         input: y0: initial guess
         TODO: this method can be improved. So far, it simply tries the standard solving method hybr
         '''
-        
+
         def fn(x):
             return self.model(x, 0, **kwargs)
         sol = opt.root(fn, y0)
@@ -500,6 +504,21 @@ class Model(object):
 
         return cc
 
+    def print_stoichiometries(self):
+        """
+        Print stoichiometries
+        """
+        pprint.pprint(self.stoichiometries)
+
+    def print_stoichiometries_by_compounds(self):
+        """
+        Print stoichiometries, but ordered by the compounds.
+        """
+        flipped = defaultdict(dict)
+        for key, val in self.stoichiometries.items():
+            for subkey, subval in val.items():
+                flipped[subkey][key] = subval
+        pprint.pprint(dict(flipped))
 
 
 
@@ -509,7 +528,7 @@ class AlgmModel(Model):
     '''
     Subclass of Model, which incorporates algebraic modules.
     An algebraic module is basically a function that allows calculation of concentrations
-    of some variables by other variables. 
+    of some variables by other variables.
     The simplest example is a conserved quantity, e.g. ATP+ADP=Atotal, then ADP=Atotal-ATP
     can be determined from ATP.
     Rapid Equilibrium modules are a typical application.
@@ -530,9 +549,9 @@ class AlgmModel(Model):
         for ammod in self.algebraicModules:
             cpdIdDict.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
             cnt += len(ammod['amCpds'])
-        
+
         self.cpdIdDict = cpdIdDict
-        
+
 
     def add_algebraicModule(self, am, amVars, amCpds):
         '''
@@ -541,11 +560,11 @@ class AlgmModel(Model):
         amVars: list of names of variables used for module in embedding model
         amCpds: list of names of compounds which are calculated by the module from amVars
         '''
-        
+
         self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
         self.updateCpdIds()
 
-    
+
     #def get_argids(self, *args):
     #    # FIXME: this should also be cached
     #    cpdids = {it: id for id, it in enumerate(self.cpdNames)}
@@ -586,7 +605,7 @@ class AlgmModel(Model):
                 return fn(self.par,*cpdarg)
 
         self.rateFn[rateName] = v
-    """    
+    """
 
     def fullConcVec(self, y):
         '''
@@ -638,9 +657,9 @@ class AlgmModel(Model):
 
         return names
 
- 
+
     def allElasticities(self, y0, norm=False):
-        ''' 
+        '''
         calculates all _direct_ elasticities:
         Rates usually depend on a concentration and not directly on a conserved equilbrium module variable.
         Therefore, the partial derivatives of the rate expression itself is zero wrt the equilibrium variable, but non-zero wrt to the concentration.
@@ -648,22 +667,22 @@ class AlgmModel(Model):
         :return: all elasticities as np.matrix
         # FIXME: more elegant merge with superclass method
         '''
-    
+
         rateIds = self.rateNames()
-    
+
         epsilon = np.zeros([len(rateIds), len(self.allCpdNames())])
-    
+
         z0 = self.fullConcVec(y0)
-    
+
         for i in range(len(rateIds)):
-    
+
             def vi(y):
                 return self.rateFn[rateIds[i]](y)
-                
+
             jac = nd.Jacobian(vi, step=z0.min()/100)
-    
+
             epsilon[i,:] = jac(z0)
-    
+
         if norm:
             v = np.array(self.rates(z0).values())
             epsilon = (1/v).reshape(len(v),1)*epsilon*z0
@@ -712,7 +731,7 @@ class AlgmModel(Model):
 class LabelModel(AlgmModel):
     '''
     LabelModel allows to define a model with carbon labelling pattern information
-    
+
     Important information on usage:
     -------------------------------
     Compounds must be added with the add_base_cpd method, which here takes two arguments:
@@ -729,19 +748,19 @@ class LabelModel(AlgmModel):
         input: string cpdName, int c (number of carbon atoms)
         output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
         '''
-    
+
         cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
-    
+
         return cpdList
 
-    @staticmethod    
+    @staticmethod
     def mapCarbons(sublabels, carbonmap):
         '''
         generates a redistributed string for the substrates (sublabels) according to carbonmap
         '''
         prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
         return prodlabels
-    
+
     @staticmethod
     def splitLabel(label, numc):
         '''
@@ -789,13 +808,13 @@ class LabelModel(AlgmModel):
         requires additionally
         - carbonmap: a list defining how the carbons appear in the products
           (of course, number of Cs must be the same for substrates and products,
-           _except_ if 
+           _except_ if
              1. a uniform outflux is defined. Then simply carbonmap=[])
              2. extra labels enter the system. Then the pattern is defined by kwargs['extLabels']. Defaults to all labelled.
         - subList: list of substrates
         - prodList: list of products
-        - *args: list of arguments required to calculate rate using function fn 
-          (including substrates and possibly allosteric effectors). 
+        - *args: list of arguments required to calculate rate using function fn
+          (including substrates and possibly allosteric effectors).
           In this list, substrate names MUST come first
         - **kwargs: required to
              - define extra lables. Key 'extLabels', Value: list of labels, starting with 0
@@ -857,7 +876,7 @@ class LabelModel(AlgmModel):
             #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
             #print stDict
             self.set_stoichiometry(rateName, stDict)
-            
+
 
     def set_initconc_cpd_labelpos(self, y0dict, labelpos={}):
         '''
@@ -871,14 +890,14 @@ class LabelModel(AlgmModel):
 
         y0dict: a dictionary with compound names as keys and concentrations as values. These are used to set the total concentrations. By default to the unlabelled compound.
 
-        labelpos: a dictionary with compound names as keys and the position of the label as value. 
+        labelpos: a dictionary with compound names as keys and the position of the label as value.
 
         Output:
 
         A full length vector of concentrations.
 
         Example: GAP labelled at 1-position, DHAP and FBP unlabelled
-        
+
         y0 = m.set_initconc_cpd_labelpos({'GAP':1,'DHAP':20,'FBP':4},{'GAP':0})
         '''
         y0 = np.zeros(len(self.cpdNames))
@@ -890,4 +909,3 @@ class LabelModel(AlgmModel):
             y0[self.get_argids(cpdName)] = y0dict[cpd]
 
         return y0
-
