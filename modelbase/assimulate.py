@@ -18,9 +18,25 @@ import numpy as np
 
 class Assimulate(Simulate):
     
+    '''
+    class Assimulate works analogously to class Simulate.
+    The fundamental integration routines are
+    - generate_integrator
+    - set_initial_value
+    - integrate
+    - timeCourse
+    All other methods are inherited from super class Simulate
+    '''
+    
     def __init__(self, model, **kwargs):
         
         #super(Assimulate, self).__init__(model, **kwargs)
+        # the simple solution above does not work, because Simulate.__init__
+        # calls generate_integrator, but this one already requires the 'f'
+        # to be defined.
+        
+        # a more elegant way would be to have one base class that does 
+        # everything except defining f and calling generate_integrator
         
         self.model = model
 
