@@ -10,6 +10,8 @@ from assimulo.solvers import CVode
 from assimulo.problem import Explicit_Problem
 
 from .simulate import Simulate
+from .simulate import AlgmSimulate
+from .simulate import LabelSimulate
 
 import numpy as np
 
@@ -51,7 +53,7 @@ class Assimulate(Simulate):
         self.integrator.t = t0
         
 
-    def integrate(self, t):
+    def integrate(self, t, integrator=None, minstep=None, maxstep=None, nsteps=None):
         
         self._successful = True
         
@@ -68,5 +70,47 @@ class Assimulate(Simulate):
         return Ylast
     
     
+    def timeCourse(self, Torig, y0, integrator=None, minstep=None, maxstep=None, nsteps=None):
+        """ integration over time, different integrators possible, lsoda default
+            returns: array of state variables
+        """
+
+        self._successful = True
+
+        T = Torig.copy()
+
+        if y0 is not None:
+            Y = [y0]
+            #print Y, type(Y)
+
+            self.set_initial_value(y0,t0=T[0])
+        else:
+            Y = [np.array(self.integrator.y)]
+            if T[0] == 0:
+                T += self.integrator.t
+
+        try:
+            t,Y = self.integrator.simulate(T[-1],ncp_list=T)
+        except:
+            print("Error in timeCourse while integrating with CVode")
+            self._successful = False
+            
+        if self.doesMonitor() and self.successful():
+            self.results.append({'t': T, 'y': Y})
+
+        return np.vstack(Y)
     
     
+
+
+class AlgmAssimulate(Assimulate,AlgmSimulate):
+    
+    pass
+
+
+
+
+class LabelAssimulate(Assimulate,LabelSimulate):
+    
+    pass
+
