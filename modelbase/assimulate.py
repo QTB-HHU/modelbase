@@ -51,16 +51,20 @@ class Assimulate(Simulate):
         self._monitor = True
         self._warnings = False
         self.clearResults()
-        self.generate_integrator()
+        if "verbosity" in kwargs:
+            self.generate_integrator(verbosity=kwargs["verbosity"])
+        else:
+            self.generate_integrator()
             
     
-    def generate_integrator(self, y0=None, name='---'):
+    def generate_integrator(self, y0=None, name='---',verbosity=50):
  
         if y0 is None:
             y0 = np.zeros(len(self.model.cpdNames))
             
         self.problem = Explicit_Problem(self.f, y0=y0, name=name)
         self.integrator = CVode(self.problem)
+        self.integrator.verbosity = verbosity
 
     
     def set_initial_value(self, y0, t0=0):

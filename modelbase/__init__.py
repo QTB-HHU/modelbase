@@ -15,3 +15,7 @@ except:
     from .simulate import AlgmSimulate
     from .simulate import LabelSimulate
 
+from .assimulate import Assimulate
+from .assimulate import AlgmAssimulate
+from .assimulate import LabelAssimulate
+
