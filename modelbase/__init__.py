@@ -9,13 +9,9 @@ try:
     Simulate = Assimulate
     AlgmSimulate = AlgmAssimulate
     LabelSimulate = LabelAssimulate
-except:
+except ImportError:
     print("Could not load modelbase.assimulate. Sundials support disabled.")
     from .simulate import Simulate
     from .simulate import AlgmSimulate
     from .simulate import LabelSimulate
-
-from .assimulate import Assimulate
-from .assimulate import AlgmAssimulate
-from .assimulate import LabelAssimulate
 
