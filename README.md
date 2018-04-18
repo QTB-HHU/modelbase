@@ -1,6 +1,6 @@
 # Modelbase
 
-Modelbase is a python package to ehlp you build and analyse dynamic mathematical models
+Modelbase is a python package to help you build and analyse dynamic mathematical models
 of biological systems.
 It has originally been designed for the simulation of metabolic systems, but can be used
 for virtually any processes, in which some substances get converted into others.
@@ -24,6 +24,14 @@ pip install modelbase
 ```
 
 ## Release notes
+
+Version 0.1.8
+
+Two minor changes:
+1. bugfix: in LabelModel setting c=0 (no labels in this compound) led to an error, because the sum of all labels
+had the same name as the compound. Fixed.
+2. verbosity can be passed to the assimulo solver.
+
 
 Version 0.1.7
 
