@@ -339,7 +339,7 @@ class Simulate(object):
         V = np.array([])
 
         for i in r:
-            if not self.results[i].has_key('v'):
+            if not 'v' in self.results[i]:
                 
                 t = self.results[i]['t']
                 y = self.results[i]['y']
