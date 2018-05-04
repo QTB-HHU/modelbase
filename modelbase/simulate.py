@@ -475,7 +475,10 @@ class LabelSimulate(AlgmSimulate):
 
         Y = self.getVarsByName(cpdNames, r)
 
-        return Y.sum(1)
+        if len(Y.shape) > 1:
+            return Y.sum(1)
+        else:
+            return Y
 
 
     def getTotalLabel(self, cpdBaseName, r=None):
@@ -491,7 +494,7 @@ class LabelSimulate(AlgmSimulate):
         c = self.model.cpdBaseNames[cpdBaseName]
         
         Ylab = []
-        for lnum in range(1,c):
+        for lnum in range(1,c+1):
             Ylab.append(self.getNumLabel(cpdBaseName, lnum) * lnum)
 
         return np.vstack(Ylab).sum(0)
