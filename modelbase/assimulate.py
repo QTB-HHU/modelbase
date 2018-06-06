@@ -10,7 +10,6 @@ from assimulo.solvers import CVode
 from assimulo.problem import Explicit_Problem
 
 from .simulate import Simulate
-from .simulate import AlgmSimulate
 from .simulate import LabelSimulate
 
 import numpy as np
