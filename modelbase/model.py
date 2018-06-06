@@ -144,6 +144,8 @@ class Model(object):
         self.rateFn = {}
         self.stoichiometries = {}
         self.cpdIdDict = {}
+        self.algebraicModules = {}
+
 
 
     def store(self, filename):
@@ -175,7 +177,14 @@ class Model(object):
         updates self.cpdIdDict. Only needed after modification of model
         structure, e.g. by set_cpds, add_cpd and add_cpds
         '''
-        self.cpdIdDict = self.idx(self.cpdNames)
+        cpdIdDict = self.idx(self.cpdNames)
+        cnt = len(self.cpdNames)
+
+        for ammod in self.algebraicModules.values():
+            cpdIdDict.update({it: id for id, it in enumerate(ammod['derived_cpds'], cnt)})
+            cnt += len(ammod['derived_cpds'])
+
+        self.cpdIdDict = cpdIdDict
 
     def set_cpds(self,cpdList):
         '''
@@ -350,7 +359,9 @@ class Model(object):
         output: dict with rateNames as keys and corresponding values
         '''
 
-        return {r:self.rateFn[r](y, **kwargs) for r in self.stoichiometries.keys()}
+        z = self.fullConcVec(y)
+
+        return {r:self.rateFn[r](z, **kwargs) for r in self.stoichiometries.keys()}
 
 
     def ratesArray(self, y, **kwargs):
@@ -385,11 +396,20 @@ class Model(object):
 
 
 
-    def fullConcVec(self, y):
+    def fullConcVec(self, z):
         '''
-        included only for compatibility reasons. Now an AlgmSimulate can be used also if no algebraic module is present
+        returns the full concentration vector, including all concentrations from algebraic modules
+        input: y - state vector of all dynamic variables
+        output: z - state vector extended by all derived concentrations
         '''
-        return y
+
+        for ammod in self.algebraicModules.values():
+
+            zam = ammod['convert_func'](z)
+
+            z = np.hstack([z,zam])
+
+        return z
 
 
     def numericElasticities(self, y0, rate):
@@ -523,38 +543,6 @@ class Model(object):
 
 
 
-###### class AlgmModel #################################################################
-
-class AlgmModel(Model):
-    '''
-    Subclass of Model, which incorporates algebraic modules.
-    An algebraic module is basically a function that allows calculation of concentrations
-    of some variables by other variables.
-    The simplest example is a conserved quantity, e.g. ATP+ADP=Atotal, then ADP=Atotal-ATP
-    can be determined from ATP.
-    Rapid Equilibrium modules are a typical application.
-    '''
-    
-    # SIMULATE_CLASS = modelbase.AlgmSimulate
-
-    def __init__(self, pars={}, defaultpars={}):
-        super(AlgmModel,self).__init__(pars,defaultpars)
-        self.algebraicModules = {}
-
-
-    def updateCpdIds(self):
-        '''
-        updates self.cpdIdDict. Only needed after modification of model
-        structure, e.g. by set_cpds, add_cpd and add_cpds
-        '''
-        cpdIdDict = self.idx(self.cpdNames)
-        cnt = len(self.cpdNames)
-
-        for ammod in self.algebraicModules.values():
-            cpdIdDict.update({it: id for id, it in enumerate(ammod['derived_cpds'], cnt)})
-            cnt += len(ammod['derived_cpds'])
-
-        self.cpdIdDict = cpdIdDict
 
 
     def add_algebraicModule(self, convert_func, module_name, cpds, derived_cpds):
@@ -578,100 +566,9 @@ class AlgmModel(Model):
         self.updateCpdIds()
         
         
-#    def add_algebraicModule(self, am, amVars, amCpds):
-#        '''
-#        this adds a module in which several compound concentrations can be calculated algebraicly.
-#        am: modelbase.algebraicModule.AlgebraicModule
-#        amVars: list of names of variables used for module in embedding model
-#        amCpds: list of names of compounds which are calculated by the module from amVars
-#        '''
-#
-#        self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
-#        self.updateCpdIds()
 
 
-    #def get_argids(self, *args):
-    #    # FIXME: this should also be cached
-    #    cpdids = {it: id for id, it in enumerate(self.cpdNames)}
-    #    cnt = len(self.cpdNames)
-    #
-    #    for ammod in self.algebraicModules:
-    #        cpdids.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
-    #        cnt += len(ammod['amCpds'])
-    #
-    #    return np.array([cpdids[x] for x in args])
 
-    """
-    def set_rate(self, rateName, fn, *args):
-        '''
-        sets a rate. Arguments:
-        Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
-        The function fn is called with the parameters self.par as first argument and the dynamic variables corresponding to the compounds as variable argument list.
-
-        In contrast to class Model, args can contain a name from an algebraic module
-
-        '''
-
-        cpdids = {it: id for id, it in enumerate(self.cpdNames)}
-        cnt = len(self.cpdNames)
-
-        for ammod in self.algebraicModules:
-            cpdids.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
-            cnt += len(ammod['amCpds'])
-
-        argids = np.array([cpdids[x] for x in args])
-
-        if len(argids) == 0:
-            def v(y):
-                return fn(self.par)
-        else:
-            def v(y):
-                cpdarg = y[argids]
-                return fn(self.par,*cpdarg)
-
-        self.rateFn[rateName] = v
-    """
-
-    def fullConcVec(self, y):
-        '''
-        returns the full concentration vector, including all concentrations from algebraic modules
-        input: y - state vector of all dynamic variables
-        output: z - state vector extended by all derived concentrations
-        '''
-        z = y.copy()
-        #vlist = [y]
-        #cpdids = {it: id for id, it in enumerate(self.cpdNames)}
-        #cpdids = self.cpdIds()
-
-        for ammod in self.algebraicModules.values():
-#            varids = np.array([cpdids[x] for x in ammod['cpds']])
-#            if len(z.shape) == 1:
-#                zin = z[varids]
-#            else:
-#                zin = z[:,varids]
-            zam = ammod['convert_func'](z)
-            #zam = ammod['am'].getConcentrations(zin)
-
-            #cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
-
-            #if len(zam.shape) == 1:
-            #    zam = zam[:,np.newaxis]
-
-            z = np.hstack([z,zam])
-            #z = np.hstack([z,np.expand_dims(np.squeeze(zam),1)])
-            #cpdids = dict(cpdids, **cpdidsam)
-            #vlist.append(ammod['am'].getConcentrations(y[varids]))
-
-        #z = np.hstack(vlist)
-
-        return z
-
-
-    def rates(self, y, **kwargs):
-
-        z = self.fullConcVec(y)
-
-        return {r:self.rateFn[r](z, **kwargs) for r in self.stoichiometries.keys()}
 
 
 
@@ -684,37 +581,6 @@ class AlgmModel(Model):
 
         return names
 
-
-    def allElasticities(self, y0, norm=False):
-        '''
-        calculates all _direct_ elasticities:
-        Rates usually depend on a concentration and not directly on a conserved equilbrium module variable.
-        Therefore, the partial derivatives of the rate expression itself is zero wrt the equilibrium variable, but non-zero wrt to the concentration.
-        :param y0: state vector
-        :return: all elasticities as np.matrix
-        # FIXME: more elegant merge with superclass method
-        '''
-
-        rateIds = self.rateNames()
-
-        epsilon = np.zeros([len(rateIds), len(self.allCpdNames())])
-
-        z0 = self.fullConcVec(y0)
-
-        for i in range(len(rateIds)):
-
-            def vi(y):
-                return self.rateFn[rateIds[i]](y)
-
-            jac = nd.Jacobian(vi, step=z0.min()/100)
-
-            epsilon[i,:] = jac(z0)
-
-        if norm:
-            v = np.array(self.rates(z0).values())
-            epsilon = (1/v).reshape(len(v),1)*epsilon*z0
-
-        return np.matrix(epsilon)
 
 
 
@@ -755,7 +621,7 @@ class AlgmModel(Model):
 #    return splitlabels
 
 
-class LabelModel(AlgmModel):
+class LabelModel(Model):
     '''
     LabelModel allows to define a model with carbon labelling pattern information
 
@@ -826,8 +692,7 @@ class LabelModel(AlgmModel):
         if c > 0:
             def totalconc(par, y):
                 return np.array([y.sum()])
-            tc = AlgebraicModule({}, totalconc)
-            self.add_algebraicModule(tc,labelNames,[cpdName])
+            self.add_algebraicModule(totalconc,cpdName+'_total', labelNames,[cpdName])
 
 
     def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args, **kwargs):

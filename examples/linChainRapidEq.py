@@ -29,7 +29,7 @@ if __name__ == '__main__':
     p = {'v0':1,'k2':0.1, 'K':5}
 
     # instantiate model as AlgmModel (because it uses an algebraic module)
-    m = modelbase.AlgmModel(p)
+    m = modelbase.Model(p)
 
     m.set_cpds(cl)
 

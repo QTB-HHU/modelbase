@@ -1,5 +1,4 @@
 from .model import Model
-from .model import AlgmModel
 from .model import LabelModel
 
 try:
