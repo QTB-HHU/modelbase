@@ -38,10 +38,10 @@ if __name__ == '__main__':
 
     # define dynamic variables
     cl = ['X','Y','Z']
-    p = {'l':.5, 'k1':1., 'k2':1., 'k3':1., 'p':.5}
+    p = {'l':.5, 'k1':1., 'k2':1., 'k3':1., 'p':.5, 'tot':1}
 
     # instantiate model
-    m = modelbase.AlgmModel(p)
+    m = modelbase.Model(p)
 
     m.set_cpds(cl)
 
@@ -50,10 +50,9 @@ if __name__ == '__main__':
         return np.array([par.tot - y[0]])
 
     # add three algebraic modules, always returning the inactive form Xi, etc.
-    cr = modelbase.algebraicModule.AlgebraicModule({'tot':1}, conrel)
-    m.add_algebraicModule(cr,['X'],['Xi'])
-    m.add_algebraicModule(cr,['Y'],['Yi'])
-    m.add_algebraicModule(cr,['Z'],['Zi'])
+    m.add_algebraicModule(conrel, 'rapidEqx',['X'],['Xi'])
+    m.add_algebraicModule(conrel, 'rapidEqy',['Y'],['Yi'])
+    m.add_algebraicModule(conrel, 'rapidEqz',['Z'],['Zi'])
 
     # time-dependent stimulus (see timeDepExt.py)
     def v0(p,x,**kwargs):
