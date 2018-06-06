@@ -123,13 +123,6 @@ class Assimulate(Simulate):
     
 
 
-class AlgmAssimulate(Assimulate,AlgmSimulate):
-    
-    pass
-
-
-
-
 class LabelAssimulate(Assimulate,LabelSimulate):
     
     pass

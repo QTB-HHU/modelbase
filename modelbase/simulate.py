@@ -279,7 +279,8 @@ class Simulate(object):
             r = range(len(self.results))
 
         Y = np.vstack([self.results[i]['y'] for i in r])
-        return Y
+        return self.model.fullConcVec(Y)
+
 
 
     def getVar(self, j, r=None):
@@ -385,28 +386,11 @@ class Simulate(object):
 
 
 
-         
-
-class AlgmSimulate(Simulate):
-    '''
-    subclass of Simulate, including access to derived Variables
-    '''
-
-    def getY(self, r=None):
-        """
-        :param r: range of steps of simulation for which results we are interested in
-        :return: values of all variables (including algModel derived) as one array
-        """
-        Y = super(AlgmSimulate,self).getY(r)
-        Yfull = self.model.fullConcVec(Y)
-        return Yfull
 
 
 
 
-
-
-class LabelSimulate(AlgmSimulate):
+class LabelSimulate(Simulate):
     '''
     subclass of Simulate, including several access methods for labels
     '''
