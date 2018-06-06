@@ -16,6 +16,8 @@ from collections import defaultdict
 
 import pprint
 
+import pandas as pd
+
 
 
 class Model(object):
@@ -225,6 +227,12 @@ class Model(object):
                 N[cid[c],i] = n
 
         return np.matrix(N)
+
+
+    def print_stoichiometryMatrix(self):
+        
+        M = self.stoichiometryMatrix()
+        return pd.DataFrame(M, self.cpdNames, self.rateNames())
 
 
 
