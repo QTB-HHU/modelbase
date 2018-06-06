@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # do the simulation: create Simulate object, perform simulations
     
     # create modelbase.simulate.Simulate object
-    s = modelbase.Simulate(m)
+    s = modelbase.Simulator(m)
     # run a timecourse
     s.timeCourse(np.linspace(0,100,1000),np.zeros(2))
 

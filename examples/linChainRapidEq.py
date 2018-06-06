@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
 
     # use the AlgmSimulate class to get access to the variables X and Y
-    s = modelbase.Simulate(m)
+    s = modelbase.Simulator(m)
     s.timeCourse(np.linspace(0,100,1000),np.zeros(1))
 
     #a = s.getVar([0])

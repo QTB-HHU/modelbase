@@ -89,7 +89,7 @@ if __name__ == '__main__':
     m.set_rate('p3',phosph,'Z')
     m.set_stoichiometry('p3',{'Z':-1})
 
-    s = modelbase.Simulate(m)
+    s = modelbase.Simulator(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(3))
 
     plt.figure()

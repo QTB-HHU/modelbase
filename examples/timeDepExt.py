@@ -42,7 +42,7 @@ if __name__ == '__main__':
     m.set_rate('v1',v1,'X')
     m.set_stoichiometry('v1',{'X':-1})
 
-    s = modelbase.Simulate(m)
+    s = modelbase.Simulator(m)
     s.timeCourse(np.linspace(0,50,500),np.zeros(1))
 
     plt.figure()
