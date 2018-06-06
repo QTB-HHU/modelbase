@@ -83,7 +83,7 @@ if __name__ == '__main__':
     
     # simulate equilibration of the labels
     y0 = m.set_initconc_cpd_labelpos(y0d,labelpos={'GAP':0})
-    s = modelbase.LabelSimulate(m)
+    s = modelbase.Simulator(m)
     T = np.linspace(0,20,1000)
     s.timeCourse(T,y0)
     

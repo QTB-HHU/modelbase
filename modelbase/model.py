@@ -582,9 +582,10 @@ class LabelModel(Model):
         # e.g. if CO20, CO21 are the unlabelled and labelled CO2's,
         # the total can be accessed by 'CO2' (likewise for any other more complicated compound)
         if c > 0:
+            cpdTotalName = cpdName + '_total'
             def totalconc(par, y):
                 return np.array([y.sum()])
-            self.add_algebraicModule(totalconc,cpdName+'_total', labelNames,[cpdName])
+            self.add_algebraicModule(totalconc,cpdTotalName, labelNames,[cpdTotalName])
 
 
     def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args, **kwargs):
