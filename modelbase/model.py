@@ -636,7 +636,8 @@ class AlgmModel(Model):
             #if len(zam.shape) == 1:
             #    zam = zam[:,np.newaxis]
 
-            z = np.hstack([z,zam])
+            #z = np.hstack([z,zam])
+            z = np.hstack([z,np.expand_dims(np.squeeze(zam),1)])
             #cpdids = dict(cpdids, **cpdidsam)
             #vlist.append(ammod['am'].getConcentrations(y[varids]))
 
