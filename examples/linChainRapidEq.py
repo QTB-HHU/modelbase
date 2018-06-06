@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     # define slow variable A
     cl = ['A']
-    p = {'v0':1,'k2':0.1}
+    p = {'v0':1,'k2':0.1, 'K':5}
 
     # instantiate model as AlgmModel (because it uses an algebraic module)
     m = modelbase.AlgmModel(p)
@@ -40,10 +40,10 @@ if __name__ == '__main__':
         return np.array([y[0]/(1+par.K),y[0]*par.K/(1+par.K)])
 
     # define the algebraic module object
-    eqm = modelbase.algebraicModule.AlgebraicModule({'K':5},feq)
+    #eqm = modelbase.algebraicModule.AlgebraicModule({'K':5},feq)
 
     # add it to the model by specifying the names of the variables
-    m.add_algebraicModule(eqm,['A'],['X','Y'])
+    m.add_algebraicModule(feq,'rapidEq',['A'],['X','Y'])
 
 
     # constant influx to the pool A

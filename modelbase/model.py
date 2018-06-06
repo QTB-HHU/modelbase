@@ -540,7 +540,7 @@ class AlgmModel(Model):
 
     def __init__(self, pars={}, defaultpars={}):
         super(AlgmModel,self).__init__(pars,defaultpars)
-        self.algebraicModules = []
+        self.algebraicModules = {}
 
 
     def updateCpdIds(self):
@@ -551,23 +551,44 @@ class AlgmModel(Model):
         cpdIdDict = self.idx(self.cpdNames)
         cnt = len(self.cpdNames)
 
-        for ammod in self.algebraicModules:
-            cpdIdDict.update({it: id for id, it in enumerate(ammod['amCpds'], cnt)})
-            cnt += len(ammod['amCpds'])
+        for ammod in self.algebraicModules.values():
+            cpdIdDict.update({it: id for id, it in enumerate(ammod['derived_cpds'], cnt)})
+            cnt += len(ammod['derived_cpds'])
 
         self.cpdIdDict = cpdIdDict
 
 
-    def add_algebraicModule(self, am, amVars, amCpds):
-        '''
-        this adds a module in which several compound concentrations can be calculated algebraicly.
-        am: modelbase.algebraicModule.AlgebraicModule
-        amVars: list of names of variables used for module in embedding model
-        amCpds: list of names of compounds which are calculated by the module from amVars
-        '''
-
-        self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
+    def add_algebraicModule(self, convert_func, module_name, cpds, derived_cpds):
+        
+        sids = self.get_argids(*cpds)
+        
+        def _amwrapper(y):
+            if len(y.shape) == 1:
+                cpdarg = y[sids]
+                return convert_func(self.par,cpdarg)
+            else:
+                cpdarg = y[:,sids]
+                return np.array([convert_func(self.par,cpdarg[i,:]) for i in range(cpdarg.shape[0])])
+        
+        self.algebraicModules[module_name] = {
+                'convert_func': _amwrapper,
+                'cpds': cpds,
+                'derived_cpds': derived_cpds
+                }
+        
         self.updateCpdIds()
+        
+        
+#    def add_algebraicModule(self, am, amVars, amCpds):
+#        '''
+#        this adds a module in which several compound concentrations can be calculated algebraicly.
+#        am: modelbase.algebraicModule.AlgebraicModule
+#        amVars: list of names of variables used for module in embedding model
+#        amCpds: list of names of compounds which are calculated by the module from amVars
+#        '''
+#
+#        self.algebraicModules.append({'am': am, 'amVars': amVars, 'amCpds': amCpds})
+#        self.updateCpdIds()
 
 
     #def get_argids(self, *args):
@@ -621,23 +642,24 @@ class AlgmModel(Model):
         z = y.copy()
         #vlist = [y]
         #cpdids = {it: id for id, it in enumerate(self.cpdNames)}
-        cpdids = self.cpdIds()
+        #cpdids = self.cpdIds()
 
-        for ammod in self.algebraicModules:
-            varids = np.array([cpdids[x] for x in ammod['amVars']])
-            if len(z.shape) == 1:
-                zin = z[varids]
-            else:
-                zin = z[:,varids]
-            zam = ammod['am'].getConcentrations(zin)
+        for ammod in self.algebraicModules.values():
+#            varids = np.array([cpdids[x] for x in ammod['cpds']])
+#            if len(z.shape) == 1:
+#                zin = z[varids]
+#            else:
+#                zin = z[:,varids]
+            zam = ammod['convert_func'](z)
+            #zam = ammod['am'].getConcentrations(zin)
 
             #cpdidsam = {it:id for id,it in enumerate(ammod['amCpds'], z.size)}
 
             #if len(zam.shape) == 1:
             #    zam = zam[:,np.newaxis]
 
-            #z = np.hstack([z,zam])
-            z = np.hstack([z,np.expand_dims(np.squeeze(zam),1)])
+            z = np.hstack([z,zam])
+            #z = np.hstack([z,np.expand_dims(np.squeeze(zam),1)])
             #cpdids = dict(cpdids, **cpdidsam)
             #vlist.append(ammod['am'].getConcentrations(y[varids]))
 
@@ -658,8 +680,8 @@ class AlgmModel(Model):
         ''' returns list of all compounds, including from algebraic modules '''
         names = []
         names.extend(self.cpdNames)
-        for ammod in self.algebraicModules:
-            names.extend(ammod['amCpds'])
+        for ammod in self.algebraicModules.values():
+            names.extend(ammod['derived_cpds'])
 
         return names
 
