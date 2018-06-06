@@ -30,6 +30,10 @@ class Simulate(object):
         self._warnings = False
         self.clearResults()
         self.generate_integrator()
+        
+#        if hasattr(model,'SIMULATE_CLASS'):
+#            self.__class__ = model.SIMULATE_CLASS
+            
 
     def successful(self):
         return self._successful

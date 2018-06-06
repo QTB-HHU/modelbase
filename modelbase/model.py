@@ -2,7 +2,7 @@ __author__ = 'oliver'
 
 
 
-import modelbase.parameters
+from .parameters import ParameterSet
 from modelbase.algebraicModule import AlgebraicModule
 
 import numpy as np
@@ -132,13 +132,15 @@ class Model(object):
     functionalities are provided in the other example{i}.py files
     '''
 
+    #    SIMULATE_CLASS = modelbase.Simulate
+
     @staticmethod
     def idx(list):
         return {it: id for id, it in enumerate(list)}
 
 
     def __init__(self, pars={}, defaultpars={}):
-        self.par = modelbase.parameters.ParameterSet(pars,defaultpars)
+        self.par = ParameterSet(pars,defaultpars)
         self.cpdNames = []
         self.rateFn = {}
         self.stoichiometries = {}
@@ -533,6 +535,9 @@ class AlgmModel(Model):
     can be determined from ATP.
     Rapid Equilibrium modules are a typical application.
     '''
+    
+    # SIMULATE_CLASS = modelbase.AlgmSimulate
+
     def __init__(self, pars={}, defaultpars={}):
         super(AlgmModel,self).__init__(pars,defaultpars)
         self.algebraicModules = []
@@ -738,6 +743,7 @@ class LabelModel(AlgmModel):
     cpdName (string) and c (int) specifying number of carbon atoms
     '''
 
+    # SIMULATE_CLASS = modelbase.LabelSimulate
 
     # some important static methods
 
