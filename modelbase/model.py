@@ -3,7 +3,6 @@ __author__ = 'oliver'
 
 
 from .parameters import ParameterSet
-from modelbase.algebraicModule import AlgebraicModule
 
 import numpy as np
 
