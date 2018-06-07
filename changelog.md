@@ -2,6 +2,9 @@
 ## 0.2.1
 * Changed total concentration names in label models to base_name+"_total"
 * Added print_stoichiometryMatrix function to return pandas dataframe
+* Added set_reaction and set_reaction_v shortcut functions
+* Allowed ParameterSet input as update method for parameter update
+* Warning when overwriting parameters with ParameterSet.update()
 ## 0.2.0
 * Separated analysis methods from model class to analysis.py
 * Unified Simulator class calls with constructor method modelbase.Simulator()
