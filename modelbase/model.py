@@ -230,7 +230,7 @@ class Model(object):
 
 
     def print_stoichiometryMatrix(self):
-        
+
         M = self.stoichiometryMatrix()
         return pd.DataFrame(M, self.cpdNames, self.rateNames())
 
@@ -356,6 +356,13 @@ class Model(object):
                 self.stoichiometries[k] = {}
             self.stoichiometries[k][cpdName] = v
 
+    def set_reaction(self,rateName, fn, stDict,*args):
+        self.set_rate(rateName, fn, *args)
+        self.set_stoichiometry(rateName, stDict)
+
+    def set_reaction_v(self,rateName, fn, stDict,*args):
+        self.set_ratev(rateName, fn, *args)
+        self.set_stoichiometry(rateName, stDict)
 
     def rates(self, y, **kwargs):
         '''
@@ -438,9 +445,9 @@ class Model(object):
 
 
     def add_algebraicModule(self, convert_func, module_name, cpds, derived_cpds):
-        
+
         sids = self.get_argids(*cpds)
-        
+
         def _amwrapper(y):
             if len(y.shape) == 1:
                 cpdarg = y[sids]
@@ -448,16 +455,16 @@ class Model(object):
             else:
                 cpdarg = y[:,sids]
                 return np.array([convert_func(self.par,cpdarg[i,:]) for i in range(cpdarg.shape[0])])
-        
+
         self.algebraicModules[module_name] = {
                 'convert_func': _amwrapper,
                 'cpds': cpds,
                 'derived_cpds': derived_cpds
                 }
-        
+
         self.updateCpdIds()
-        
-        
+
+
 
 
 
