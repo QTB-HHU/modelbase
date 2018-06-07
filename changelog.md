@@ -4,13 +4,16 @@
 * Added print_stoichiometryMatrix function to return pandas dataframe
 * Added set_reaction and set_reaction_v shortcut functions
 * Allowed ParameterSet input as update method for parameter update
-* Warning when overwriting parameters with ParameterSet.update()
+* Warning when overwriting parameters with ParameterSet.update()  
+
+
 ## 0.2.0
 * Separated analysis methods from model class to analysis.py
 * Unified Simulator class calls with constructor method modelbase.Simulator()
 * Removed AlgmSimulate class
 * Unified AlgmModel and Model classes
 * Changed algebraic module construction
+
 
 ## 0.1.8
 * bugfix: in LabelModel setting c=0 (no labels in this compound) led to an error, because the sum of all labels
