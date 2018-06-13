@@ -352,7 +352,7 @@ class Simulate(object):
 
                 Vnew = []
                 for j in range(len(t)):
-                    vd = self.model.rates(y[j])
+                    vd = self.model.rates(y[j], **{'t':t[j]})
                     vt = np.array([vd[k] for k in rlist])
                     Vnew.append(vt)
 
@@ -379,7 +379,7 @@ class Simulate(object):
 
             V = np.hstack([V,
                            np.array(
-                           [self.model.rates(y[j])[rate] for j in range(len(t))]
+                           [self.model.rates(y[j], **{'t':t[j]})[rate] for j in range(len(t))]
                            )])
 
         return V
