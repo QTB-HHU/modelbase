@@ -1,4 +1,8 @@
 # Changelog
+## 0.2.2
+* Bug fixed: simulate.getV and getRate did not pass time for time-dependent rate functions generated with modelbase.set_ratev
+
+
 ## 0.2.1
 * Changed total concentration names in label models to base_name+"_total"
 * Added print_stoichiometryMatrix function to return pandas dataframe
