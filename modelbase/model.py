@@ -356,11 +356,11 @@ class Model(object):
                 self.stoichiometries[k] = {}
             self.stoichiometries[k][cpdName] = v
 
-    def set_reaction(self,rateName, fn, stDict,*args):
+    def add_reaction(self,rateName, fn, stDict,*args):
         self.set_rate(rateName, fn, *args)
         self.set_stoichiometry(rateName, stDict)
 
-    def set_reaction_v(self,rateName, fn, stDict,*args):
+    def add_reaction_v(self,rateName, fn, stDict,*args):
         self.set_ratev(rateName, fn, *args)
         self.set_stoichiometry(rateName, stDict)
 
