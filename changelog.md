@@ -1,4 +1,8 @@
 # Changelog
+## 0.2.3
+* Renamed set_reaction to add_reaction for consistency.
+* Version to be released with manuscript submission to Journal of Open Research Software
+
 ## 0.2.2
 * Bug fixed: simulate.getV and getRate did not pass time for time-dependent rate functions generated with modelbase.set_ratev
 

@@ -25,23 +25,10 @@ pip install modelbase
 
 ## Release notes
 
-Version 0.1.8
+Version 0.2.3 is the official release for the submission of the 
+mansucript "Building mathematical models of biological systems 
+with modelbase, a Python package for semi-automatic ODE assembly 
+and construction of isotope-specific models" to the Journal of Open 
+Research Software.
 
-Two minor changes:
-1. bugfix: in LabelModel setting c=0 (no labels in this compound) led to an error, because the sum of all labels
-had the same name as the compound. Fixed.
-2. verbosity can be passed to the assimulo solver.
-
-
-Version 0.1.7
-
-Support for the differential equation solver sundials (CVODE)
-through the python package [assimulo](http://www.jmodelica.org/assimulo).
-Falls back to scipy.integrate.ode if assimulo cannot be loaded.
-
-Brief installation instructions of sundials/assimulo (tested on Ubuntu 14.04 and 16.04 and MacOX X):
-* Install sundials-2.6.0 [here](https://computation.llnl.gov/projects/sundials/sundials-software). The version is important. We did not get 3.0.0 to run. You will need cmake and ccmake for it.
-Set compiler flag -fPIC.
-* pip install assimulo
-
-
+See changelog.md for details on changes of earlier versions.
