@@ -6,7 +6,12 @@ from datetime import datetime
 
 from recommonmark.parser import CommonMarkParser
 
-extensions = ['sphinx.ext.autodoc']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.autosummary',
+    'numpydoc',
+]
 templates_path = ['/home/docs/checkouts/readthedocs.org/readthedocs/templates/sphinx', 'templates', '_templates', '.templates']
 source_suffix = ['.rst', '.md']
 source_parsers = {
@@ -113,12 +118,12 @@ context = {
     'versions': [
     ("latest", "/en/latest/"),
     ],
-    'downloads': [ 
+    'downloads': [
     ("pdf", "//readthedocs.org/projects/modelbase/downloads/pdf/latest/"),
     ("htmlzip", "//readthedocs.org/projects/modelbase/downloads/htmlzip/latest/"),
     ("epub", "//readthedocs.org/projects/modelbase/downloads/epub/latest/"),
     ],
-    'subprojects': [ 
+    'subprojects': [
     ],
     'slug': 'modelbase',
     'name': u'modelbase',
@@ -155,9 +160,9 @@ context = {
 
 
 if 'html_context' in globals():
-    
+
     html_context.update(context)
-    
+
 else:
     html_context = context
 
