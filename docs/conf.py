@@ -54,6 +54,16 @@ from six import string_types
 
 from sphinx import version_info
 
+from unittest.mock import MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+MOCK_MODULES = ['numpy', 'pandas', 'assimulo']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 # Get suffix for proper linking to GitHub
 # This is deprecated in Sphinx 1.3+,
 # as each page can have its own suffix
