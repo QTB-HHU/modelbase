@@ -1,3 +1,8 @@
+"""Model
+
+Description of the module
+
+"""
 import numpy as np
 import itertools
 import re

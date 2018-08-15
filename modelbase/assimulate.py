@@ -1,3 +1,8 @@
+"""Assimulate
+
+Description of the module
+
+"""
 import numpy as np
 
 from assimulo.solvers import CVode
@@ -8,26 +13,26 @@ from .simulate import LabelSimulate
 
 
 class Assimulate(Simulate):
-        """Provides simulation routines
+    """Provides simulation routines
 
-        Attributes
-        ----------
-        model : class
-            modelbase.Model or modelbase.LabelModel instance
-        **kwargs : dict
-            User defined dynamic changes for rate functions
+    Attributes
+    ----------
+    model : class
+        modelbase.Model or modelbase.LabelModel instance
+    **kwargs : dict
+        User defined dynamic changes for rate functions
 
-        Methods
-        -------
-        generate_integrator(y0, name, verbosity)
-            Initializes CVODE integrator
-        set_initial_value(y0, t0)
-            Sets initial values
-        integrate(t, integrator, minstep, maxstep, nsteps)
-            Integrates model. Returns values at time point t
-        timeCourse(Torig, y0, integrator, minstep, maxstep, nsteps)
-            Integration over time vector
-        """
+    Methods
+    -------
+    generate_integrator(y0, name, verbosity)
+        Initializes CVODE integrator
+    set_initial_value(y0, t0)
+        Sets initial values
+    integrate(t, integrator, minstep, maxstep, nsteps)
+        Integrates model. Returns values at time point t
+    timeCourse(Torig, y0, integrator, minstep, maxstep, nsteps)
+        Integration over time vector
+    """
 
     def __init__(self, model, **kwargs):
         self.model = model

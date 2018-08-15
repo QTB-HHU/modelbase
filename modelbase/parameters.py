@@ -1,18 +1,26 @@
+"""ParameterSet
+
+Description of the module
+
+"""
+
+
 class ParameterSet(object):
-        """Class containing model paramters
+    """Class containing model paramters
 
-        Attributes
-        ----------
-        pars : dict
-            Supplied parameters
-        defaultpars : dict
-            Default parameters overwriting supplied parameters
+    Attributes
+    ----------
+    pars : dict
+        Supplied parameters
+    defaultpars : dict
+        Default parameters overwriting supplied parameters
 
-        Methods
-        -------
-        update(pars)
-            Adds and updates parameters.
-        """
+    Methods
+    -------
+    update(pars)
+        Adds and updates parameters.
+    """
+
 
     def __init__(self, pars={}, defaultpars={}):
         mypars = pars.copy()

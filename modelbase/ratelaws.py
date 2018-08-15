@@ -1,3 +1,8 @@
+"""RateLaws
+
+Description of the module
+
+"""
 def massAction(p, *args):
     """Mass action law
 

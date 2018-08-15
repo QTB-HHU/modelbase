@@ -1,3 +1,8 @@
+"""Simulate
+
+Description of the module
+
+"""
 import numpy as np
 import scipy.integrate as sci
 import math
@@ -5,48 +10,48 @@ import itertools
 import pickle
 
 class Simulate(object):
-        """Provides simulation routines
+    """Provides simulation routines
 
-        Attributes
-        ----------
-        model : class
-            modelbase.Model or modelbase.LabelModel instance
-        **kwargs : dict
-            User defined dynamic changes for rate functions
+    Attributes
+    ----------
+    model : class
+        modelbase.Model or modelbase.LabelModel instance
+    **kwargs : dict
+        User defined dynamic changes for rate functions
 
-        Methods
-        -------
-        generate_integrator(integrator, max_step, nsteps)
-            Generates a scipy.integrate.ode object
-        set_initial_value(y0, t0)
-            Sets initial values for the integration
-        set_initial_value_to_last()
-            Initialises the sci.ode integrator to last values stored in results
-        integrate(t, minstep, maxstep, nsteps)
-            Integrates model. Returns values at time point t
-        timeCourse(Torig, y0, integrator, minstep, maxstep, nsteps)
-            Numerical integration in given time range
-        sim2SteadyState(y0, AbsTol, t0, step, maxstep)
-            Simulation until numerical approximated steady state
-        estimatePeriod(y0, t0, twait, tend, dt, osctol, varno)
-            Estimates a period from a simulation running to a stable limit cycle
-        getT
-            Returns integration time vector over all simulations
-        getY
-            Returns integration values over all simulations with derived variables
-        getVar
-            Returns state variables over all simulations
-        getVarByName
-            Get compound concentrations by compound name
-        getVarsByName
-            Get compound concentrations by compound names
-        getVarsByRegexp
-            Get compound concentrations by regular expression
-        getV
-            Returns rate vector for simulation results
-        getRate
-            Returns rate vector for the simulation
-        """
+    Methods
+    -------
+    generate_integrator(integrator, max_step, nsteps)
+        Generates a scipy.integrate.ode object
+    set_initial_value(y0, t0)
+        Sets initial values for the integration
+    set_initial_value_to_last()
+        Initialises the sci.ode integrator to last values stored in results
+    integrate(t, minstep, maxstep, nsteps)
+        Integrates model. Returns values at time point t
+    timeCourse(Torig, y0, integrator, minstep, maxstep, nsteps)
+        Numerical integration in given time range
+    sim2SteadyState(y0, AbsTol, t0, step, maxstep)
+        Simulation until numerical approximated steady state
+    estimatePeriod(y0, t0, twait, tend, dt, osctol, varno)
+        Estimates a period from a simulation running to a stable limit cycle
+    getT
+        Returns integration time vector over all simulations
+    getY
+        Returns integration values over all simulations with derived variables
+    getVar
+        Returns state variables over all simulations
+    getVarByName
+        Get compound concentrations by compound name
+    getVarsByName
+        Get compound concentrations by compound names
+    getVarsByRegexp
+        Get compound concentrations by regular expression
+    getV
+        Returns rate vector for simulation results
+    getRate
+        Returns rate vector for the simulation
+    """
 
     def __init__(self, model, **kwargs):
         self.model = model
@@ -563,21 +568,21 @@ class Simulate(object):
 
 
 class LabelSimulate(Simulate):
-        """Extends Simulate class with methods for label models.
+    """Extends Simulate class with methods for label models.
 
-        Methods
-        -------
-        getTotal(cpdBaseName, r)
-            Retrieve sum of all labeled variants of a base compound
-        getLabelAtPos(cpdBaseName, lpos, r)
-            Retrieves total concentration of a compound where the given position is labeled
-        getNumLabel(cpdBaseName, nlab, r)
-            Retrieves total concentration of a compound with the given number of labeles
-        getTotalLabel(cpdBaseName, r)
-            Retrieves total concentration of a compound that is labeled
-        getTotalRate(rateBaseName, r)
-            Retrieves the sum of all rates starting with 'rateBaseName'
-        """
+    Methods
+    -------
+    getTotal(cpdBaseName, r)
+        Retrieve sum of all labeled variants of a base compound
+    getLabelAtPos(cpdBaseName, lpos, r)
+        Retrieves total concentration of a compound where the given position is labeled
+    getNumLabel(cpdBaseName, nlab, r)
+        Retrieves total concentration of a compound with the given number of labeles
+    getTotalLabel(cpdBaseName, r)
+        Retrieves total concentration of a compound that is labeled
+    getTotalRate(rateBaseName, r)
+        Retrieves the sum of all rates starting with 'rateBaseName'
+    """
 
 
     def getTotal(self, cpdBaseName, r=None):

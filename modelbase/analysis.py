@@ -1,3 +1,8 @@
+"""Analysis
+
+Description of the module
+
+"""
 import scipy.optimize as opt
 import numdifftools as nd
 import numpy as np
@@ -6,22 +11,22 @@ from .modelbase import Model
 
 
 class Analysis(Model):
-        """Class for model analyses, including common metabolic control
-        analysis calculations
+    """Class for model analyses, including common metabolic control
+    analysis calculations
 
-        Methods
-        -------
-        numericElasticities(y0, rate)
-            Calculate numerical elasticities for a rate
-        allElasticities(y0, norm)
-            Numerically approximates elasticisties for all rates
-        numericJacobian(y0, **kwargs)
-            Calculate Jacobian
-        findSteadyState(y0, **kwargs)
-            Tries to find the steady-state by numerically solving the algebraic system dy/dt = 0
-        concentrationControlCoefficients(y0, pname, norm, **kwargs)
-            Calculates concentration control coefficients for a parameter
-        """
+    Methods
+    -------
+    numericElasticities(y0, rate)
+        Calculate numerical elasticities for a rate
+    allElasticities(y0, norm)
+        Numerically approximates elasticisties for all rates
+    numericJacobian(y0, **kwargs)
+        Calculate Jacobian
+    findSteadyState(y0, **kwargs)
+        Tries to find the steady-state by numerically solving the algebraic system dy/dt = 0
+    concentrationControlCoefficients(y0, pname, norm, **kwargs)
+        Calculates concentration control coefficients for a parameter
+    """
 
     def numericElasticities(self, y0, rate):
         """Numerically approximates elasticisties for a rate

@@ -1,3 +1,8 @@
+"""Init
+
+Description of the module
+
+"""
 from .model import Model
 from .model import LabelModel
 
