@@ -1,140 +1,94 @@
-__author__ = 'oliver'
-
-
-
-from .parameters import ParameterSet
-
 import numpy as np
-
 import itertools
-
 import re
-
 import pickle
-
-from collections import defaultdict
-
 import pprint
-
 import pandas as pd
 
-
+from collections import defaultdict
+from .parameters import ParameterSet
 
 class Model(object):
-    '''The base class for modelling. Provides basic functionality.
+    """The main class for modeling. Provides model construction tools.
 
-    This class defines an object with which model construction and
-    numeric simulations are made easy.
+    Attributes
+    ----------
+    par : modelbase.parameters.ParameterSet
+        Model parameters, stored in a ParameterSet object
+    cpdNames : list
+        List of all compounds in the model
+    cpdIdDict : dict
+        Dictionary with all compounds and corresponding IDs
+    rateFn : dict
+        Contains all reaction names as keys and reaction functions as values
+    stoichiometries : dict
+        Contains all reaction names as keys and stoichiometry dictionaries as values
+    algebraicModules : dict
+        Contains all algebraicModule names as keys and algebraic functions as values
 
-    An instance of class Model is used to define the model, i.e. the
-    dynamic variables and the dynamic equations defining their temporal
-    derivatives.
-
-    The numeric simulation is performed with an instance of class
-    Simulate.
-
-    Useful analysis methods are provided by class Results
-
-    Mini tutorial
-    =============
-
-    Every model is defined by
-    - model parameters
-    - model variables
-    - rate equations
-    - stoichiometries
-
-    Example: A chemical reaction chain
-
-    -> X -> Y ->
-
-    Two variables "X", "Y"
-
-    Three parameters: influx (v0), rate constant conversion X->Y (k1),
-    rate constant for outflux (k2)
-
-    Three rate equations:
-    - v0 (constant)
-    - v1 = k1*X
-    - v2 = k2*Y
-
-    with the stoichiometries
-    - v0 adds one X
-    - v1 removes one X, adds one Y
-    - v2 removes one Y
-
-    Mathematically, this results in the two model equations:
-    - dX/dt = v0 - k1*X
-    - dY/dt = k1*X - k2*Y
-
-    When instanciating a model, the model parameters are provided as
-    a dictionary:
-
-    m = Model({'v0':1, 'k1': 0.5, 'k2': 0.1})
-
-    The variables can now be accessed by m.par.v0, m.par.k1 and m.par.k2
-
-    Now, the variables need to be added. Variables are ALWAYS defined by
-    names (i.e. strings). These are later used to access and identify
-    the variables and their values. Here:
-
-    m.set_cpds(['X','Y'])
-
-    The last thing to do is to set the rates. This is done using
-    set_rate.  Here, the first argument is always a name that the rate
-    is associated with (to access it later) and the second is a
-    function that calculates the rate. The remaining parameters are
-    the names of the variables whose values are passed to the
-    function. The function must always accept as first argument a
-    parameter object (actually, m.par), and the remaining arguments
-    are the values of the variables used to calculate the rate.
-
-    Rate v0: this is particularly simple, because it is constant:
-
-    m.set_rate('v0', lambda p: p.v0)
-
-    Rate v1: this depends also on the value of variable 'X'. So we define
-    a function first.
-
-    def v1(p,x):
-        return p.k1*x
-
-    m.set_rate('v1', v1, 'X')
-
-    Likewise v2:
-
-    def v2(p,x):
-        return p.k2*x
-
-    m.set_rate('v2', v2, 'Y')
-
-    Last thing is to set the stoichiometries:
-
-    m.set_stoichiometry('v0',{'X':1})
-
-    m.set_stoichiometry('v1',{'X':-1,'Y':1})
-
-    m.set_stoichiometry('v2',{'Y':-1})
-
-    Simulation and Plot:
-
-    s = Simulate(m)
-
-    T = np.linspace(0,100,1000)
-    Y = s.timeCourse(T,np.zeros(3))
-
-    plt.plot(T,Y)
-
-    This example is found in example.py. Other examples using additional
-    functionalities are provided in the other example{i}.py files
-    '''
-
-    #    SIMULATE_CLASS = modelbase.Simulate
+    Methods
+    -------
+    rateNames()
+        Returns a list of the rate names
+    set_cpds(cpdList)
+        Sets the compounds to the given list of compounds
+    add_cpd(cpdName)
+        Adds a compound to the model
+    add_cpds(cpdList)
+        Adds a list of compounds to the model
+    cpdIds()
+        Returns a dictionary with the compound names as keys and their index as values
+    find_re_argids(regexp)
+        Returns indices for compound names matching the regular expression
+    set_rate(rateName, fn, *args)
+        Sets a rate
+    set_ratev(rateName, fn, *args)
+        Sets a rate that depends on additional information (time)
+    set_stoichiometry(rateName, stDict)
+        Sets the reaction stoichiometry for a rate
+    set_stoichiometry_byCpd
+        Sets the reaction stoichiometry of a rate by compound name
+    add_reaction(rateName, fn, stDict, *args)
+        Adds a reaction containing a rate function and stoichiometry
+    add_reaction_v(rateName, fn, stDict, *args)
+        Adds a reaction containing a rate function and stoichiometry, that depends on additional information (time).
+    rates(y, **kwargs)
+        Returns the model rates at time point zero if not specified else in kwargs
+    ratesArray(y, **kwargs)
+        Returns the model rates at time point zero if not specified else in kwargs
+    add_algebraicModule(convert_func, module_name, cpds, derived_cpds)
+        Adds an algebraic module
+    allCpdNames()
+        Returns a list of all compound names, including the compounds derived from algebraic modules
+    model(y, t, **kwargs)
+        Returns right-hand side of the ODE system
+    fullConcVec(z)
+        Returns the concentration vector, including all derived variables from algebraic modules
+    stoichiometryMatrix()
+        Returns the stoichiometric matrix
+    print_stoichiometryMatrix()
+        Returns a pandas DataFrame of the stoichiometric matrix
+    print_stoichiometries()
+        Prints stoichiometries
+    print_stoichiometries_by_compounds()
+        Prints stoichiometries ordered by compounds
+    """
 
     @staticmethod
     def idx(list):
-        return {it: id for id, it in enumerate(list)}
+        """ Enumerates a list
 
+        Parameters
+        ----------
+        list : list
+            The list to be enumerated
+
+        Returns
+        -------
+        enumerated list : dict
+            A dictionary containing the list items as keys and the index as values.
+        """
+        return {it: id for id, it in enumerate(list)}
 
     def __init__(self, pars={}, defaultpars={}):
         self.par = ParameterSet(pars,defaultpars)
@@ -144,37 +98,60 @@ class Model(object):
         self.cpdIdDict = {}
         self.algebraicModules = {}
 
-
-
     def store(self, filename):
-        '''
-        stores the parameters to file FILENAME
-        :input filename: FILENAME
-        '''
+        """Stores the ParameterSet object into a pickle file
+
+        Parameters
+        ----------
+        filename : str
+            The name of the pickle file
+
+        Returns
+        -------
+        None
+        """
         f = open(filename,'wb')
         pickle.dump(self.par, f)
         f.close()
 
     @classmethod
     def load(cls, filename):
-        '''
-        loads parameters from file and invokes constructor of corresponding class
-        :input filename: where to load parameters from
-        '''
+        """ Loads parameters from a pickle file and stores them in a new model instance
+
+        Parameters
+        ----------
+        filename : str
+            The name of the pickle file
+
+        Returns
+        -------
+        model : modelbase.model
+            A model instance containing the loaded parameters
+        """
         par = pickle.load(open(filename,'rb'))
         m = cls(pars=par.__dict__)
         return m
 
 
     def rateNames(self):
+        """Returns a list of the rate names
+
+        Returns
+        -------
+        rate_names : list
+            A list of the rate names
+        """
         return list(self.stoichiometries.keys())
 
 
     def updateCpdIds(self):
-        '''
-        updates self.cpdIdDict. Only needed after modification of model
-        structure, e.g. by set_cpds, add_cpd and add_cpds
-        '''
+        """Updates the compound ID dictionary.
+        Only needed after modification of the model structure.
+
+        Returns
+        -------
+        None
+        """
         cpdIdDict = self.idx(self.cpdNames)
         cnt = len(self.cpdNames)
 
@@ -184,80 +161,120 @@ class Model(object):
 
         self.cpdIdDict = cpdIdDict
 
-    def set_cpds(self,cpdList):
-        '''
-        sets the names of the compounds in model to cpdList
-        TO DECIDE: do we want add_cpds and even rm_cpds?
-        '''
+    def set_cpds(self, cpdList):
+        """Sets the compounds to the given list of compounds.
+        This replaces any previously added compounds.
+
+        Parameters
+        ----------
+        cpdList : list
+            A list of compound names (str)
+
+        Returns
+        -------
+        None
+        """
         self.cpdNames = cpdList
         self.updateCpdIds()
 
     def add_cpd(self, cpdName):
-        '''
-        adds a single compound with name cpdName (string) to cpdNames
-        if it does not yet exist
-        '''
+        """Adds a compound to the model.
+
+        Parameters
+        ----------
+        cpdName : str
+            Name of the compound
+
+        Returns
+        -------
+        None
+        """
         if cpdName not in self.cpdIds():
             self.cpdNames.append(cpdName)
             self.updateCpdIds()
 
     def add_cpds(self, cpdList):
-        '''
-        adds a list of compounds (list of strings with names) to cpdNames
-        '''
+        """Adds a list of compounds to the model
+
+        Parameters
+        ----------
+        cpdList : list
+            List of compounds (str) to be added
+
+        Returns
+        -------
+        None
+        """
         for k in cpdList:
             self.add_cpd(k)
-        #self.cpdNames = self.cpdNames + cpdList
-        #self.updateCpdIds()
 
     def stoichiometryMatrix(self):
-        '''
-        returns the stoichiometry matrix
-        '''
+        """Returns the stoichiometric matrix.
 
+        Returns
+        -------
+        stoichiometric matrix : numpy.matrix
+        """
         cid = self.idx(self.cpdNames)
-        #print cid
         rn = self.rateNames()
-
         N = np.zeros([len(self.cpdNames),len(rn)])
-
         for i in range(len(rn)):
             for (c, n) in self.stoichiometries[rn[i]].items():
-                #print "c=%s, cid=%d, r=%s, n=%d" % (c, cid[c], rn[i], n)
                 N[cid[c],i] = n
-
         return np.matrix(N)
 
-
     def print_stoichiometryMatrix(self):
+        """Returns a pandas DataFrame of the stoichiometric matrix.
 
+        Returns
+        -------
+        stoichiometric matrix : pandas.DataFrame
+        """
         M = self.stoichiometryMatrix()
         return pd.DataFrame(M, self.cpdNames, self.rateNames())
 
-
-
     def cpdIds(self):
-        '''
-        returns a dict with keys:cpdNames, values:idx
-        This is now cached in self.cpdIdDict. This is updated whenever
-        a compound is added.
-        '''
+        """Returns a dictionary with the compound names as keys and their index as values.
+
+        Returns
+        -------
+        cpdIdDict : dict
+        """
         return self.cpdIdDict
-        #return {self.cpdNames[i]:i for i in range(len(self.cpdNames))}
 
 
     def get_argids(self, *args):
+        """Returns the compound IDs for the given args.
 
+        Parameters
+        ----------
+        *args : list
+            List containing the compound names (str)
+
+        Returns
+        -------
+        cpd_ids : numpy.array
+            Numpy array of compound IDs.
+        """
         cids = self.cpdIds()
         return np.array([cids[x] for x in args])
 
     def find_re_argids(self, regexp):
-        '''
-        Returns list of indices for which the compound name matches the
-        regular expression
+        """Returns indices for compound names matching the regular expression.
+
         Useful especially in conjunction with labelModel:
         e.g. find all FBPs labelled at pos 3: find_re_argids("\AFBP...1..\Z")
-        '''
+
+        Parameters
+        ----------
+        regexp : str
+            Regular expression for compound names
+
+        Returns
+        -------
+        cpd_ids : numpy.array
+            Numpy array of compound IDs.
+        """
         cids = self.cpdIds()
         reids = []
         for cpdName in cids.keys():
@@ -267,63 +284,51 @@ class Model(object):
 
 
     def set_rate(self, rateName, fn, *args):
-        '''
-        sets a rate. Arguments:
-        Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
-        The function fn is called with the parameters self.par as first argument and the dynamic variables corresponding to the compounds as variable argument list.
+        """Sets a rate.
 
-        Example
+        Parameters
+        ----------
+        rateName : str
+            Name of the rate
+        fn : method
+            Rate function
+        *args : str
+            Variables
+
+        Returns
         -------
-        m = modelbase.model.Model({'k1':0.5})
-        m.set_cpds(['X','Y','Z'])
-        def v1(par,x):
-            return par.k1*x
-        m.set_rate('v1',v1,'X')
-
-        m.rateFn['v1'](np.array([3,2,1]))
-        # 1.5
-        '''
-
+        None
+        """
         sids = self.get_argids(*args)
-
-
         if len(sids) == 0:
-            # note: the **kwargs is necessary to allow all rates to be called in the same way. It can be empty.
             def v(y,**kwargs):
                 return fn(self.par)
         else:
             def v(y,**kwargs):
                 cpdarg = y[sids]
                 return fn(self.par,*cpdarg)
-
         self.rateFn[rateName] = v
 
-
-
     def set_ratev(self, rateName, fn, *args):
-        '''
-        sets a rate, which depends on additional information.
-        Difference to set_rate: the rate is called with an additional variable **kwargs.
-        This always contains time as key 't', and other user-defined stuff that is passed to methods 'model', 'rates'
-        Arguments:
-        Input: rateName (string), fn (the function) and _names_ of compounds which are passed to the function.
-        The function fn is called with the parameters self.par as first argument and the dynamic variables corresponding to the compounds as variable argument list.
+        """Sets a rate that depends on additional information (time).
 
-        Example
+        Difference to set_rate: the rate is called with an additional variable **kwargs,
+        that contains time as the key 't'.
+
+        Parameters
+        ----------
+        rateName : str
+            Name of the rate
+        fn : method
+            Rate function
+        *args : str
+            Variables
+
+        Returns
         -------
-        m = modelbase.model.Model({'l':1,'k1':0.5})
-        m.set_cpds(['X'])
-        def v1(par,**kwargs):
-            return np.exp(-par.l*kwargs['t'])
-        m.set_ratev('v1',v1)
-
-        m.rateFn['v1'](np.array([0]),t=0)
-        # 1
-        m.rateFn['v1'](np.array([0]),t=1)
-        # 0.36787944117144233
-        '''
+        None
+        """
         sids = self.get_argids(*args)
-
         if len(sids) == 0:
             def v(y,**kwargs):
                 return fn(self.par,**kwargs)
@@ -331,108 +336,183 @@ class Model(object):
             def v(y,**kwargs):
                 cpdarg = y[sids]
                 return fn(self.par,*cpdarg,**kwargs)
-
         self.rateFn[rateName] = v
 
 
     def set_stoichiometry(self, rateName, stDict):
-        '''
-        sets stoichiometry for rate rateName to values contained in stDict
+        """Sets the reaction stoichiometry for a rate.
 
-        Example
+        Parameters
+        ----------
+        rateName : str
+            Name of the rate
+        stDict : dict
+            Dictionary containing the reaction stoichiometry
+
+        Returns
         -------
-        m.set_stoichiometry('v1',{'X':-1,'Y',1})
-
-        '''
-
+        None
+        """
         self.stoichiometries[rateName] = stDict
 
-    def set_stoichiometry_byCpd(self,cpdName,stDict):
-        '''
-        same as set_stoichiometry, but by compound name
-        '''
+    def set_stoichiometry_byCpd(self, cpdName, stDict):
+        """Sets the reaction stoichiometry of a rate by compound name.
+
+        Parameters
+        ----------
+        cpdName : str
+            Name of the compound
+        stDict : dict
+            Dictionary containing the reaction stoichiometry
+
+        Returns
+        -------
+        None
+        """
         for k,v in stDict.items():
             if k not in self.stoichiometries:
                 self.stoichiometries[k] = {}
             self.stoichiometries[k][cpdName] = v
 
     def add_reaction(self,rateName, fn, stDict,*args):
+        """Adds a reaction containing a rate function and stoichiometry.
+
+        Parameters
+        ----------
+        rateName : str
+            Name of the rate
+        fn : method
+            Rate function
+        stDict : dict
+            Dictionary containing the reaction stoichiometry
+
+        Returns
+        -------
+        None
+        """
         self.set_rate(rateName, fn, *args)
         self.set_stoichiometry(rateName, stDict)
 
     def add_reaction_v(self,rateName, fn, stDict,*args):
+        """Adds a reaction containing a rate function and stoichiometry,
+        that depends on additional information (time).
+
+        Difference to add_reaction: the rate is called with an additional variable **kwargs,
+        that contains time as the key 't'.
+
+        Parameters
+        ----------
+        rateName : str
+            Name of the rate
+        fn : method
+            Rate function
+        stDict : dict
+            Dictionary containing the reaction stoichiometry
+
+        Returns
+        -------
+        None
+        """
         self.set_ratev(rateName, fn, *args)
         self.set_stoichiometry(rateName, stDict)
 
     def rates(self, y, **kwargs):
-        '''
-        argument: np.array y - values of all compounds
-        output: dict with rateNames as keys and corresponding values
-        '''
+        """Returns the model rates at time point zero if not specified else in kwargs.
 
+        Parameters
+        ----------
+        y : numpy.array
+            Array containing all compound concentrations
+        t : int or float, optional
+            kwargs of the simulation time
+
+        Returns
+        -------
+        rates : dict
+            Dictionary of rate names as keys and rates as values
+        """
         z = self.fullConcVec(y)
-
         return {r:self.rateFn[r](z, **kwargs) for r in self.stoichiometries.keys()}
 
-
     def ratesArray(self, y, **kwargs):
-        '''
-        argument: np.array y - values of all compounds
-        output: array with rates, order as self.stoichiometry.keys()
-        '''
+        """Returns the model rates at time point zero if not specified else in kwargs.
 
+        Parameters
+        ----------
+        y : numpy.array
+            Array containing all compound concentrations
+        t : int or float, optional
+            kwargs of the simulation time
+
+        Returns
+        -------
+        rates : numpy.array
+            Numpy array of rates. Ordered like stoichiometries dictionary
+        """
         v = self.rates(y, **kwargs)
         return np.array([v[k] for k in self.stoichiometries.keys()])
 
-
-
     def model(self, y, t, **kwargs):
-        '''
-        argument: np.array y - including values of all compounds
-        output: np.array dydt - including all corresponding temporal changes required for dynamic simulation / ODE integration
-        '''
+        """Returns right-hand side of the ODE system
 
+        Parameters
+        ----------
+        y : numpy.array
+            Compound concentrations
+        t : int or float
+            Time point
+        **kwargs : dict
+            User defined functions for dynamic rate function dependencies
+
+        Returns
+        -------
+        dydt : numpy.array
+            Array of all temporal changes required for ODE integration
+        """
         dydt = np.zeros(len(y))
-
         kwargs.update({'t':t})
-
         v = self.rates(y, **kwargs)
         idx = self.cpdIds()
-
         for rate,st in self.stoichiometries.items():
             for cpd,n in st.items():
                 dydt[idx[cpd]] += n * v[rate]
-
         return dydt
 
 
 
     def fullConcVec(self, z):
-        '''
-        returns the full concentration vector, including all concentrations from algebraic modules
-        input: y - state vector of all dynamic variables
-        output: z - state vector extended by all derived concentrations
-        '''
+        """Returns the concentration vector, including all derived variables from algebraic modules.
 
+        Parameters
+        ----------
+        z : numpy.array
+            Array of compound concentrations
+
+        Returns
+        -------
+        z : numpy.array
+            Array of compound concentrations and derived variables
+        """
         for ammod in self.algebraicModules.values():
-
             zam = ammod['convert_func'](z)
-
             z = np.hstack([z,zam])
-
         return z
 
-
-
     def print_stoichiometries(self):
-        """
-        Print stoichiometries
+        """Prints stoichiometries
+
+        Returns
+        -------
+        None
         """
         pprint.pprint(self.stoichiometries)
 
     def print_stoichiometries_by_compounds(self):
-        """
-        Print stoichiometries, but ordered by the compounds.
+        """Prints stoichiometries ordered by compounds
+
+        Returns
+        -------
+        None
         """
         flipped = defaultdict(dict)
         for key, val in self.stoichiometries.items():
@@ -440,14 +520,25 @@ class Model(object):
                 flipped[subkey][key] = subval
         pprint.pprint(dict(flipped))
 
-
-
-
-
     def add_algebraicModule(self, convert_func, module_name, cpds, derived_cpds):
+        """Adds an algebraic module.
 
+        Parameters
+        ----------
+        module_name : str
+            Name of the algebraic module
+        convert_func : method
+            Method calculating derived variables
+        cpds : list
+            List of substrates
+        derived_cpds : list
+            List of compounds derived from the module
+
+        Returns
+        -------
+        None
+        """
         sids = self.get_argids(*cpds)
-
         def _amwrapper(y):
             if len(y.shape) == 1:
                 cpdarg = y[sids]
@@ -455,110 +546,107 @@ class Model(object):
             else:
                 cpdarg = y[:,sids]
                 return np.array([convert_func(self.par,cpdarg[i,:]) for i in range(cpdarg.shape[0])])
-
         self.algebraicModules[module_name] = {
                 'convert_func': _amwrapper,
                 'cpds': cpds,
                 'derived_cpds': derived_cpds
                 }
-
         self.updateCpdIds()
 
-
-
-
-
-
-
-
     def allCpdNames(self):
-        ''' returns list of all compounds, including from algebraic modules '''
+        """Returns a list of all compound names, including the compounds
+        derived from algebraic modules
+
+        Returns
+        -------
+        names : list
+            List of compound names
+        """
         names = []
         names.extend(self.cpdNames)
         for ammod in self.algebraicModules.values():
             names.extend(ammod['derived_cpds'])
-
         return names
 
 
-
-
-
-
-
-
-###### class LabelModel #################################################################
-
-
-#def generateLabelCpds(cpdName, c):
-#    '''
-#    generates label versions of a compound.
-#    input: string cpdName, int c (number of carbon atoms)
-#    output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
-#    '''
-#
-#    cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
-#
-#    return cpdList
-#
-#def mapCarbons(sublabels, carbonmap):
-#    '''
-#    generates a redistributed string for the substrates (sublabels) according to carbonmap
-#    '''
-#    prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
-#    return prodlabels
-#
-#def splitLabel(label, numc):
-#    '''
-#    splits the label string according to the lengths given in the list/vector numc
-#    '''
-#    splitlabels = []
-#    cnt = 0
-#    for i in range(len(numc)):
-#        splitlabels.append(label[cnt:cnt+numc[i]])
-#        cnt += numc[i]
-#    return splitlabels
-
-
 class LabelModel(Model):
-    '''
-    LabelModel allows to define a model with carbon labelling pattern information
+    """Extension of model class able to create models with
+    carbon labeling pattern information.
 
-    Important information on usage:
-    -------------------------------
-    Compounds must be added with the add_base_cpd method, which here takes two arguments:
-    cpdName (string) and c (int) specifying number of carbon atoms
-    '''
-
-    # SIMULATE_CLASS = modelbase.LabelSimulate
-
-    # some important static methods
+    Attributes
+    ----------
+    cpdBaseNames : dict
+        Dictionary containing the compounds as keys and number of carbons as values
+    Methods
+    -------
+    add_base_cpd(cpdName, c)
+        Adds a carbon containing compound to the model
+    add_carbonmap_reaction(rateBaseName, fn, carbonmap, sublist, prodList, *args, **kwargs)
+        Sets rates for all reactions of all isotope labelling patterns of the substrates
+    set_initconc_cpd_labelpos(y0dict, labelpos)
+        Generates a vector of inital concentrations for all label patterns
+    """
 
     @staticmethod
     def generateLabelCpds(cpdName, c):
-        '''
-        generates label versions of a compound.
-        input: string cpdName, int c (number of carbon atoms)
-        output: list of compounds names with all labeling patterns accroding to Name000, Name001 etc
-        '''
+        """Generates label versions of a compound.
 
+        Adds a string of ones (unlabeled) and zeros (labeled)
+        to the compound name. So a compound ABC with two carbons
+        can have 4 (in general 2**n) possible patterns:
+        ABC00
+        ABC01
+        ABC10
+        ABC11
+
+        Parameters
+        ----------
+        cpdName : str
+            Name of the compound
+        c : int
+            Number of carbon atoms of the compound
+
+        Returns
+        -------
+        cpdList : list
+            List of compound names with all labeling patterns
+        """
         cpdList = [cpdName+''.join(i) for i in itertools.product(('0','1'), repeat = c)]
-
         return cpdList
 
     @staticmethod
     def mapCarbons(sublabels, carbonmap):
-        '''
-        generates a redistributed string for the substrates (sublabels) according to carbonmap
-        '''
+        """Generates a redistributed string for the substrates, according to the carbonmap
+
+        Parameters
+        ----------
+        sublabels : list
+            List of substrate label positions
+        carbonmap : list
+            Carbon transition map
+
+        Returns
+        -------
+        prodLabels : str
+            Redistributed string for the substrates (sublabels) according to carbonmap
+        """
         prodlabels = ''.join([sublabels[carbonmap[i]] for i in range(len(carbonmap))])
         return prodlabels
 
     @staticmethod
     def splitLabel(label, numc):
-        '''
-        splits the label string according to the lengths given in the list/vector numc
-        '''
+        """Splits the label string according to the lengths given in numc
+
+        Parameters
+        ----------
+        numc : int
+            Number of carbons
+
+        Returns
+        -------
+        splitLabels : list
+            List of label positions
+        """
         splitlabels = []
         cnt = 0
         for i in range(len(numc)):
@@ -566,21 +654,24 @@ class LabelModel(Model):
             cnt += numc[i]
         return splitlabels
 
-
-
-
-
     def __init__(self, pars={}, defaultpars={}):
         super(LabelModel,self).__init__(pars,defaultpars)
         self.cpdBaseNames = {}
 
-
     def add_base_cpd(self, cpdName, c):
-        '''
-        adds compound to model, generating all possible labelling patterns
-        :param cpdName: compound base name
-        :param c: number of C atoms
-        '''
+        """Adds a carbon containing compound to the model
+
+        Parameters
+        ----------
+        cpdName : str
+            Name of the compound
+        c : int
+            Number of carbon atoms of the compound
+
+        Returns
+        -------
+        None
+        """
         self.cpdBaseNames[cpdName] = c
         labelNames = self.generateLabelCpds(cpdName,c)
         super(LabelModel,self).add_cpds(labelNames) # add all labelled names
@@ -596,37 +687,36 @@ class LabelModel(Model):
 
 
     def add_carbonmap_reaction(self, rateBaseName, fn, carbonmap, subList, prodList, *args, **kwargs):
-        '''
-        sets all rates for reactions for all isotope labelling patterns of the substrates.
-        Sets all stoichiometries for these reactions.
-        requires additionally
-        - carbonmap: a list defining how the carbons appear in the products
-          (of course, number of Cs must be the same for substrates and products,
-           _except_ if
-             1. a uniform outflux is defined. Then simply carbonmap=[])
-             2. extra labels enter the system. Then the pattern is defined by kwargs['extLabels']. Defaults to all labelled.
-        - subList: list of substrates
-        - prodList: list of products
-        - *args: list of arguments required to calculate rate using function fn
-          (including substrates and possibly allosteric effectors).
-          In this list, substrate names MUST come first
-        - **kwargs: required to
-             - define extra lables. Key 'extLabels', Value: list of labels, starting with 0
+        """Sets rates for all reactions of all isotope labelling patterns of the substrates.
 
-        examples for carbon maps:
-        TPI: GAP [0,1,2] -> DHAP [2,1,0] (order changes here), carbonmap = [2,1,0]
-        Ald: DHAP [0,1,2] + GAP [3,4,5] -> FBP, carbonmap = [0,1,2,3,4,5]
-        TK: E4P [0,1,2,3] + X5P [4,5,6,7,8] -> GAP [6,7,8] + F6P [4,5,0,1,2,3], carbonmap = [6,7,8,4,5,0,1,2,3]
-        '''
+        Parameters
+        ----------
+        rateBaseName : str
+            Name of the rate
+        fn : method
+            Rate function
+        carbonmap : list
+            Carbon transition map
+        subList : list
+            List of the substrates
+        prodList : list
+            List of the products
+        args : str
+            Function arguments (e.g. substrates)
+        extLabels : str, optional
+            kwargs to define which labels should be added if the number of
+            carbon atoms of the products exceeds the number of carbon atoms
+            of the substrates. Defaults to all positions labeled.
 
+        Returns
+        -------
+        None
+        """
         # first collect the lengths (num of C) of the substrates and products
         cs = np.array([self.cpdBaseNames[s] for s in subList])
         cp = np.array([self.cpdBaseNames[p] for p in prodList])
-
         # get all args from *args that are not substrates (can be passed directly)
         otherargs = list(args[len(cs):len(args)])
-        #print "otherargs:", otherargs
-
         # get all possible combinations of label patterns for substrates
         rateLabels = self.generateLabelCpds('',cs.sum())
 
@@ -639,26 +729,19 @@ class LabelModel(Model):
                     extLabelList[extL] = '1'
                 extLabels = ''.join(extLabelList)
             else:
-                extLabels = '1' * (cp.sum() - cs.sum()) # FIXME make more flexible to allow labels and no-labels to be introduced
+                extLabels = '1' * (cp.sum() - cs.sum())
 
         for l in rateLabels: # loop through all patterns
-            #print l
             pl = self.mapCarbons(l+extLabels, carbonmap) # get product labels
             sublabels = self.splitLabel(l, cs)
             prodlabels = self.splitLabel(pl, cp)
 
             subargs = [args[i]+sublabels[i] for i in range(len(cs))]
-            #print subargs
             prodargs = [prodList[i]+prodlabels[i] for i in range(len(cp))]
-            #print prodargs
-
             rateName = rateBaseName+l
-
             # set rate
             rateargs = subargs+otherargs
-            #print rateargs
             self.set_rate(rateName, fn, *rateargs)
-
             # set stoichiometry dictionary
             # FIXME think about the possibility that a stoichiometry is not +/-1...
             stDict = {k:-1 for k in subargs}
@@ -667,33 +750,24 @@ class LabelModel(Model):
                     stDict[k] += 1
                 else:
                     stDict[k] = 1
-            #stDict.update({k:1 for k in prodargs}) # did not work if substrates = products
-            #print stDict
             self.set_stoichiometry(rateName, stDict)
 
-
     def set_initconc_cpd_labelpos(self, y0dict, labelpos={}):
-        '''
-        generates a vector of initial concentrations, such that
-        everything is unlabelled excpet those specified in dictionary labelpos.
-        :param y0dict: dict with compound names as keys and total concentrations as values
-        :param labelpos: dict with compound names as keys and the position of the label as value
-        :return: A full length vector of concentrations.
+        """Generates a vector of inital concentrations for all label patterns.
+        Defaults to unlabeled compounds, except those specified in labelpos.
 
-        Inputs:
+        Parameters
+        ----------
+        y0dict : dict
+            Dictionary with compound names as keys and concentrations as values
+        labelpos : dict
+            Dictionary with compound names as keys and position of label as value
 
-        y0dict: a dictionary with compound names as keys and concentrations as values. These are used to set the total concentrations. By default to the unlabelled compound.
-
-        labelpos: a dictionary with compound names as keys and the position of the label as value.
-
-        Output:
-
-        A full length vector of concentrations.
-
-        Example: GAP labelled at 1-position, DHAP and FBP unlabelled
-
-        y0 = m.set_initconc_cpd_labelpos({'GAP':1,'DHAP':20,'FBP':4},{'GAP':0})
-        '''
+        Returns
+        -------
+        y0 : numpy.array
+            Initial concentration array for all label patterns
+        """
         y0 = np.zeros(len(self.cpdNames))
         for cpd, c in self.cpdBaseNames.items():
             labels = ['0'] * c

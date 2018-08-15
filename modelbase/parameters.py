@@ -1,42 +1,47 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar  3 22:19:33 2015
-
-@author: oliver
-"""
-
-
-# TODO: allow dictionary or ParameterSet as pars / defaultpars
-
 class ParameterSet(object):
+        """Class containing model paramters
 
-    def __init__(self, pars={}, defaultpars={}):  # -- Anna changed here for pars to be optional
-        '''
-        sets parameters to defaultpars,
-        overwrites these with pars if provided
-        '''
+        Attributes
+        ----------
+        pars : dict
+            Supplied parameters
+        defaultpars : dict
+            Default parameters overwriting supplied parameters
 
+        Methods
+        -------
+        update(pars)
+            Adds and updates parameters.
+        """
+
+    def __init__(self, pars={}, defaultpars={}):
         mypars = pars.copy()
-
         for k in defaultpars.keys():
-            mypars.setdefault(k,defaultpars[k])
-
+            mypars.setdefault(k, defaultpars[k])
         for k,v in mypars.items():
             setattr(self,k,v)
 
-
-
     def update(self, pars):
-        '''
-        Updates parameters
-        Input:
-            pars: dictionary or ParameterSet object
-        '''
+        """Adds and updates parameters
 
+        Parameters
+        ----------
+        pars : dict or modelbase.parameters.ParameterSet
+            Object containing new parameters
+
+        Returns
+        -------
+        None
+
+        Warns
+        -----
+        OverwritingKeys
+            Prints warning if keys are overwritten
+        """
         if isinstance(pars,dict):
             replaced_keys = [key for key in self.__dict__.keys() if key in pars]
             if replaced_keys:
-                print("Warning: overwriting keys",replaced_keys)
+                print("Warning: overwriting keys", replaced_keys)
             for k,v in pars.items():
                 setattr(self,k,v)
         elif isinstance(pars,ParameterSet):

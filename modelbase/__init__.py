@@ -13,10 +13,21 @@ except:
 
 
 def Simulator(model):
-    if isinstance(model,LabelModel):
+    """ Chooses the simulator class according to the model type
+
+    Parameters
+    ----------
+    model : modelbase.model
+        The model instance
+
+    Returns
+    -------
+    Simulate : object
+        A simulate object according to the model type
+    """
+    if isinstance(model, LabelModel):
         return LabelSimulate(model)
-    elif isinstance(model,Model):
+    elif isinstance(model, Model):
         return Simulate(model)
     else:
         raise NotImplementedError
-        
