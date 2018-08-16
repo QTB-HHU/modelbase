@@ -10,14 +10,11 @@ setup(name='modelbase',
       url='https://gitlab.com/ebenhoeh/modelbase',
       author='Oliver Ebenhoeh',
       author_email='oliver.ebenhoeh@hhu.de',
-      license='GPL4',
+      license='GPL3',
       packages=['modelbase'],
       install_requires=[
           'numpy',
           'scipy',
           'matplotlib'
-          #'itertools',
-          #'re',
-          #'pickle'
       ],
       zip_safe=False)
