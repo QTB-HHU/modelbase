@@ -13,7 +13,7 @@ Welcome to modelbase's documentation!
 
 
 Indices and tables
-=================monad=
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -28,12 +28,12 @@ model
 =====
 .. automodule:: modelbase.model
    :members:
-   
+
 parameters
 ==========
 .. automodule:: modelbase.parameters
    :members:
-   
+
 simulate
 ========
 .. automodule:: modelbase.simulate
@@ -43,7 +43,7 @@ assimulate
 ==========
 .. automodule:: modelbase.assimulate
    :members:
-   
+
 analysis
 ========
 .. automodule:: modelbase.analysis
