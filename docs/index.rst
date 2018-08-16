@@ -18,33 +18,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-Documentation for the Code
-**************************
-
-.. automodule:: modelbase
-
-model
-=====
-.. automodule:: modelbase.model
-   :members:
-
-parameters
-==========
-.. automodule:: modelbase.parameters
-   :members:
-
-simulate
-========
-.. automodule:: modelbase.simulate
-   :members:
-
-assimulate
-==========
-.. automodule:: modelbase.assimulate
-   :members:
-
-analysis
-========
-.. automodule:: modelbase.analysis
-   :members:

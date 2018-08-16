@@ -40,7 +40,7 @@ class Mock(object):
 # These modules should correspond to the importable Python packages.
 MOCK_MODULES = [
     'numpy',
-    'scipy', 'scipy.optimize', 'scipy.sparse', 'scipy.io', 'scipy.stats',
+    'scipy', 'scipy.optimize', 'scipy.sparse', 'scipy.io', 'scipy.stats', 'scipy.integrate'
     'pandas',
     'assimulo', 'assimulo.solvers', 'assimulo.problem'
 ]
