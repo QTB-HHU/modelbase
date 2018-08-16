@@ -7,6 +7,7 @@ Documentation for modelbase
 
    installation
    tutorial
+   _autogen/modules
 
 
 Indices and tables
