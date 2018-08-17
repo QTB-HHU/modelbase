@@ -38,7 +38,7 @@ conda install -c conda-forge assimulo
 conda install -c chria assimulo
 ```
 
-or build sundials from source using our [installation guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/docs/sundials-installation.rst).
+or build sundials from source using our [installation guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/docs/sundials-installation.md).
 
 
 ## License
