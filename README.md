@@ -30,6 +30,17 @@ See changelog.md for details on changes of earlier versions.
 pip install modelbase
 ```
 
+To enable assimulo support, either conda install the package
+
+```python3
+conda install -c conda-forge assimulo
+# or
+conda install -c chria assimulo
+```
+
+or build sundials from source using our [installation guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/docs/sundials-installation.rst).
+
+
 ## License
 [GPL 3](https://gitlab.com/ebenhoeh/modelbase/blob/master/LICENSE)
 
