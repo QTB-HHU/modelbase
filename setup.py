@@ -31,5 +31,6 @@ setup(name='modelbase',
           'numpy',
           'scipy',
           'matplotlib'
+          'pandas'
       ],
       zip_safe=False)
