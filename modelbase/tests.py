@@ -623,7 +623,7 @@ class LabelModelTest(unittest.TestCase):
     def test_label_compound_assembly(self):
         m = mb.LabelModel()
         m.add_base_cpd("A", 2)
-        assert m.allCpdNames() == ['A00', 'A01', 'A10', 'A11', 'A_total']
+        self.assertEqual(m.allCpdNames(), ['A00', 'A01', 'A10', 'A11', 'A_total'])
 
     def test_carbonmap_reaction_assembly(self):
         m = mb.LabelModel()
@@ -631,15 +631,13 @@ class LabelModelTest(unittest.TestCase):
         m.add_base_cpd("B", 2)
         m.add_carbonmap_reaction("v1", lambda x: x, [0, 1], ["A"], ["B"], "A")
         m.add_carbonmap_reaction("v2", lambda x: x, [0, 1], ["B"], ["A"], "B")
-        list(m.rateFn.keys()) == ['v100', 'v101', 'v110', 'v111',
-                                  'v200', 'v201', 'v210', 'v211']
+        self.assertEqual(list(m.rateFn.keys()),
+                         ['v100', 'v101', 'v110', 'v111',
+                          'v200', 'v201', 'v210', 'v211'])
 
 class IntegrationTests(unittest.TestCase):
-    def test_integration(self):
-        """
-        Test basic integration output
-        """
-        # One variable
+    """Test basic integration output"""
+    def test_integration_one_variable(self):
         m = mb.Model({"k0":1})
         m.set_cpds(["X"])
         m.set_rate('v0', lambda p, x: p.k0 * x, "X")
@@ -648,7 +646,7 @@ class IntegrationTests(unittest.TestCase):
         y = s.timeCourse(np.linspace(0,10,10),np.ones(1))
         self.assertTrue(np.isclose(y[-1][0], 22028.621954073271))
 
-        # Two variables
+    def test_integration_two_variables(self):
         m = mb.Model({"k0":1, "k1":2})
         m.set_cpds(["X", "Y"])
         m.set_rate('v0', lambda p, x: p.k0 * x, "X")
