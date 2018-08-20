@@ -30,7 +30,7 @@ setup(name='modelbase',
       install_requires=[
           'numpy',
           'scipy',
-          'matplotlib'
+          'matplotlib',
           'pandas'
       ],
       zip_safe=False)
