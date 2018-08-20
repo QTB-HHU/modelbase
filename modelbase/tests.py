@@ -572,7 +572,7 @@ class RightHandSideTests(unittest.TestCase):
             "mod1",
             ["X"],
             ["Y"])
-        self.assertEqual(m.fullConcVec(np.array([1])), np.array([1, 1]))
+        self.assertTrue(all(m.fullConcVec(np.array([1])) == np.array([1, 1])))
 
     def test_full_concentration_vector_two_variables(self):
         m = mb.Model()
@@ -587,9 +587,9 @@ class RightHandSideTests(unittest.TestCase):
             "mod1",
             ["X", "Y"],
             ["Z"])
-        self.assertEqual(m.fullConcVec(np.array([1, 1])), np.array([1, 1, 1]))
+        self.assertTrue(all(m.fullConcVec(np.array([1, 1])) == np.array([1, 1, 1])))
 
-    def test_full_concentration_vector_one_two_derived_variables_list(self):
+    def test_full_concentration_vector_one_cpd_two_derived_variables_list(self):
         m = mb.Model()
         m.set_cpds(["X"])
         m.add_reaction(
@@ -602,9 +602,9 @@ class RightHandSideTests(unittest.TestCase):
             "mod1",
             ["X"],
             ["Y", "Z"])
-        self.assertEqual(m.fullConcVec(np.array([1])), np.array([1, 1, 1]))
+        self.assertTrue(all(m.fullConcVec(np.array([1])) == np.array([1, 1, 1])))
 
-    def test_full_concentration_vector_one_two_derived_variables_tuple(self):
+    def test_full_concentration_vector_one_cpd_two_derived_variables_tuple(self):
         m = mb.Model()
         m.set_cpds(["X"])
         m.add_reaction(
@@ -617,7 +617,7 @@ class RightHandSideTests(unittest.TestCase):
             "mod1",
             ["X"],
             ["Y", "Z"])
-        self.assertEqual(m.fullConcVec(np.array([1])), np.array([1, 1, 1]))
+        self.assertTrue(all(m.fullConcVec(np.array([1])) == np.array([1, 1, 1])))
 
 class LabelModelTest(unittest.TestCase):
     def test_label_compound_assembly(self):

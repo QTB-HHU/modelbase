@@ -543,7 +543,7 @@ class Model(object):
 
         Parameters
         ----------
-        z : numpy.array
+        z : numpy.array or list
             Array of compound concentrations
 
         Returns
@@ -598,7 +598,7 @@ class Model(object):
         """
         sids = self.get_argids(*cpds)
         def _amwrapper(y):
-            if len(y.shape) == 1:
+            if len(np.array(y).shape) == 1:
                 cpdarg = y[sids]
                 return convert_func(self.par,cpdarg)
             else:
