@@ -37,12 +37,15 @@ class ParameterSet(object):
     """
 
 
-    def __init__(self, pars={}, defaultpars={}):
-        mypars = pars.copy()
-        for k in defaultpars.keys():
-            mypars.setdefault(k, defaultpars[k])
-        for k,v in mypars.items():
-            setattr(self,k,v)
+    def __init__(self, parameters={}):
+        if isinstance(parameters, dict):
+            for k,v in parameters.items():
+                setattr(self,k,v)
+        elif isinstance(parameters, ParameterSet):
+            for k, v in parameters.__dict__.items():
+                setattr(self,k,v)
+        else:
+            raise TypeError("Function requires dict or ParameterSet input")
 
     def update(self, pars):
         """Adds and updates parameters

@@ -110,8 +110,8 @@ class Model(object):
         """
         return {it: id for id, it in enumerate(list)}
 
-    def __init__(self, pars={}, defaultpars={}):
-        self.par = ParameterSet(pars,defaultpars)
+    def __init__(self, pars={}):
+        self.par = ParameterSet(pars)
         self.cpdNames = []
         self.rateFn = {}
         self.stoichiometries = {}
