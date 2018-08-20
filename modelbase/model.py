@@ -204,7 +204,7 @@ class Model(object):
                 else:
                     for i in set(cpdList):
                         cpdList.remove(i)
-                    raise ValueError(f"Duplicate entries {cpdList}")
+                    raise ValueError("Duplicate entries {}".format(cpdList))
             else:
                 raise TypeError("All ist entries have to be strings")
         else:
@@ -227,7 +227,7 @@ class Model(object):
                 self.cpdNames.append(cpdName)
                 self.updateCpdIds()
             else:
-                raise ValueError(f"Duplicate entry {cpdName}")
+                raise ValueError("Duplicate entry {}".format(cpdName))
         else:
             raise TypeError("Function expects string input")
 
