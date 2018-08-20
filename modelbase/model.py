@@ -674,8 +674,8 @@ class LabelModel(Model):
             cnt += numc[i]
         return splitlabels
 
-    def __init__(self, pars={}, defaultpars={}):
-        super(LabelModel,self).__init__(pars,defaultpars)
+    def __init__(self, pars={}):
+        super(LabelModel,self).__init__(pars)
         self.cpdBaseNames = {}
 
     def add_base_cpd(self, cpdName, c):
