@@ -145,7 +145,12 @@ class CompoundTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             m.set_cpds(1.0)
 
-    def test_set_cpds_list(self):
+    def test_set_cpds_type_error_mixed_list(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_cpds(["a", 0])
+
+    def test_set_cpds_empty_list(self):
         m = mb.Model()
         m.set_cpds([])
         self.assertEqual(m.cpdNames, [])
@@ -164,6 +169,98 @@ class CompoundTests(unittest.TestCase):
         m = mb.Model()
         with self.assertRaises(ValueError):
             m.set_cpds(["X", "X"])
+
+    # Add compound
+    def test_add_cpd_type_error_none(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd(None)
+
+    def test_add_cpd_type_error_list(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd([])
+
+    def test_add_cpd_type_error_dict(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd({})
+
+    def test_add_cpd_type_error_set(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd({"a"})
+
+    def test_add_cpd_type_error_int(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd(1)
+
+    def test_add_cpd_type_error_float(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpd(1.0)
+
+    def test_add_cpd_one_compound(self):
+        m = mb.Model()
+        m.add_cpd("a")
+        self.assertEqual(m.cpdNames, ["a"])
+
+    # Add compounds
+    def test_add_cpds_type_error_none(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds(None)
+
+    def test_add_cpds_type_error_str(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds("a")
+
+    def test_add_cpds_type_error_dict(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds({})
+
+    def test_add_cpds_type_error_set(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds({"a"})
+
+    def test_add_cpds_type_error_int(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds(1)
+
+    def test_add_cpds_type_error_float(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds(1.0)
+
+    def test_add_cpds_type_mixed_list(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.add_cpds(["a", 1])
+
+    def test_add_cpds_empty_list(self):
+        m = mb.Model()
+        m.add_cpds([])
+        self.assertEqual(m.cpdNames, [])
+
+    def test_add_cpds_list_one_compound(self):
+        m = mb.Model()
+        m.add_cpds(["X"])
+        self.assertEqual(m.cpdNames, ["X"])
+
+    def test_add_cpds_list_two_compounds(self):
+        m = mb.Model()
+        m.add_cpds(["X", "Y"])
+        self.assertEqual(m.cpdNames, ["X", "Y"])
+
+    def test_add_cpds_value_error_double_compounds(self):
+        m = mb.Model()
+        with self.assertRaises(ValueError):
+            m.add_cpds(["X", "X"])
 
     # Compound ID tests
     def test_compound_ids_empty(self):
@@ -187,33 +284,34 @@ class CompoundTests(unittest.TestCase):
         self.assertEqual(m.cpdIds()["Y"], 1)
 
 class RatesTests(unittest.TestCase):
+    """Test assembly of rates constructor"""
 
-    def test_set_rates_rate_name_str(self):
+    def test_set_rate_rate_name_str(self):
         m = mb.Model()
         m.set_rate("v1", lambda x: x)
         self.assertTrue("v1" in m.rateFn)
 
-    def test_set_rates_rate_name_int(self):
+    def test_set_rate_type_error_rate_name_int(self):
         m = mb.Model()
         with self.assertRaises(TypeError):
             m.set_rate(1, lambda x: x)
 
-    def test_set_rates_rate_name_float(self):
+    def test_set_rate_type_error_rate_name_float(self):
         m = mb.Model()
         with self.assertRaises(TypeError):
             m.set_rate(1.0, lambda x: x)
 
-    def test_set_rates_rate_name_list(self):
+    def test_set_rate_type_error_rate_name_list(self):
         m = mb.Model()
         with self.assertRaises(TypeError):
             m.set_rate([], lambda x: x)
 
-    def test_set_rates_rate_name_dict(self):
+    def test_set_rate_type_error_rate_name_dict(self):
         m = mb.Model()
         with self.assertRaises(TypeError):
             m.set_rate({}, lambda x: x)
 
-    def test_set_rates_rate_name_set(self):
+    def test_set_rate_type_error_rate_name_set(self):
         m = mb.Model()
         with self.assertRaises(TypeError):
             m.set_rate({"a"}, lambda x: x)
@@ -232,9 +330,110 @@ class RatesTests(unittest.TestCase):
     #     m.set_rate('v0', lambda p, X: p.k0 * X, "X")
     #     self.assertEqual(m.rateFn["v0"](m.par, 10), m.par.k0 * 10)
 
+    def test_set_ratev_type_error_rate_name_int(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_ratev(1, lambda x: x)
+
+    def test_set_ratev_type_error_rate_name_float(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_ratev(1.0, lambda x: x)
+
+    def test_set_ratev_type_error_rate_name_list(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_ratev([], lambda x: x)
+
+    def test_set_ratev_type_error_rate_name_dict(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_ratev({}, lambda x: x)
+
+    def test_set_ratev_type_error_rate_name_set(self):
+        m = mb.Model()
+        with self.assertRaises(TypeError):
+            m.set_ratev({"a"}, lambda x: x)
+
+    def test_set_ratev_rate_name_str(self):
+        m = mb.Model()
+        m.set_ratev("v1", lambda x: x)
+        self.assertTrue("v1" in m.rateFn)
+
 
 class StoichiometryTests(unittest.TestCase):
     """Test basic stoichiometry assembly and stoichiometric matrices"""
+
+    def test_set_stoichiometry_rateName_type_error_int(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry(1, {"X":1})
+
+    def test_set_stoichiometry_rateName_type_error_float(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry(1.0, {"X":1})
+
+    def test_set_stoichiometry_rateName_type_error_list(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry(["v0"], {"X":1})
+
+    def test_set_stoichiometry_rateName_type_error_dict(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry({"v0":1}, {"X":1})
+
+    def test_set_stoichiometry_rateName_type_error_set(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry({"v0"}, {"X":1})
+
+    def test_set_stoichiometry_stDict_type_error_int(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry("v0", 1)
+
+    def test_set_stoichiometry_stDict_type_error_float(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry("v0", 1.0)
+
+    def test_set_stoichiometry_stDict_type_error_list(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry("v0", ["X"])
+
+    def test_set_stoichiometry_stDict_type_error_str(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry("v0", "X")
+
+    def test_set_stoichiometry_stDict_type_error_set(self):
+        m = mb.Model({"k":1})
+        m.set_cpds(["X"])
+        m.set_rate("v0", lambda p: p.k)
+        with self.assertRaises(TypeError):
+            m.set_stoichiometry("v0", {"X"})
+
     def test_stoichiometries_one_compound_one_reaction(self):
         m = mb.Model({"k":1})
         m.set_cpds(["X"])
@@ -258,6 +457,68 @@ class StoichiometryTests(unittest.TestCase):
         m.set_stoichiometry("v1", {"X":-1, "Y":1})
         self.assertEqual(m.stoichiometries, {'v0': {'X': 1}, 'v1': {'X': -1, 'Y': 1}})
 
+class ReactionTests(unittest.TestCase):
+    """Test basic assembly of reaction constructors"""
+
+    def test_add_reaction_type_error_rate_name_int(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction(1, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_type_error_rate_name_float(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction(1.0, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_type_error_rate_name_list(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction([], lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_type_error_rate_name_dict(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction({}, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_type_error_rate_name_set(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction({"a"}, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_v_type_error_rate_name_int(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction_v(1, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_v_type_error_rate_name_float(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction_v(1.0, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_v_type_error_rate_name_list(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction_v([], lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_v_type_error_rate_name_dict(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction_v({}, lambda x: x, {"X":1}, "X")
+
+    def test_add_reaction_v_type_error_rate_name_set(self):
+        m = mb.Model()
+        m.set_cpds(["X"])
+        with self.assertRaises(TypeError):
+            m.add_reaction_v({"a"}, lambda x: x, {"X":1}, "X")
 
 class AlgebraicModuleTests(unittest.TestCase):
     """Test basic assembly of algebraic modules"""

@@ -194,8 +194,21 @@ class Model(object):
         -------
         None
         """
-        self.cpdNames = cpdList
-        self.updateCpdIds()
+        if isinstance(cpdList, list):
+            # Check if all are strings
+            if all(isinstance(item, str) for item in cpdList):
+                # Check for duplicates
+                if len(cpdList) == len(list(set(cpdList))):
+                    self.cpdNames = cpdList
+                    self.updateCpdIds()
+                else:
+                    for i in set(cpdList):
+                        cpdList.remove(i)
+                    raise ValueError(f"Duplicate entries {cpdList}")
+            else:
+                raise TypeError("All ist entries have to be strings")
+        else:
+            raise TypeError("Function expects list input")
 
     def add_cpd(self, cpdName):
         """Adds a compound to the model.
@@ -209,9 +222,14 @@ class Model(object):
         -------
         None
         """
-        if cpdName not in self.cpdIds():
-            self.cpdNames.append(cpdName)
-            self.updateCpdIds()
+        if isinstance(cpdName, str):
+            if cpdName not in self.cpdIds():
+                self.cpdNames.append(cpdName)
+                self.updateCpdIds()
+            else:
+                raise ValueError(f"Duplicate entry {cpdName}")
+        else:
+            raise TypeError("Function expects string input")
 
     def add_cpds(self, cpdList):
         """Adds a list of compounds to the model
@@ -225,8 +243,11 @@ class Model(object):
         -------
         None
         """
-        for k in cpdList:
-            self.add_cpd(k)
+        if isinstance(cpdList, list):
+            for k in cpdList:
+                self.add_cpd(k)
+        else:
+            raise TypeError("Function expects list input")
 
     def stoichiometryMatrix(self):
         """Returns the stoichiometric matrix.
@@ -313,12 +334,15 @@ class Model(object):
         fn : method
             Rate function
         *args : str
-            Variables
+            Compounds of the function. Must be present in model.
 
         Returns
         -------
         None
         """
+        if not isinstance(rateName, str):
+            raise TypeError("RateName must be string")
+
         sids = self.get_argids(*args)
         if len(sids) == 0:
             def v(y,**kwargs):
@@ -348,6 +372,9 @@ class Model(object):
         -------
         None
         """
+        if not isinstance(rateName, str):
+            raise TypeError("RateName must be string")
+
         sids = self.get_argids(*args)
         if len(sids) == 0:
             def v(y,**kwargs):
@@ -373,6 +400,11 @@ class Model(object):
         -------
         None
         """
+        if not isinstance(rateName, str):
+            raise TypeError("RateName must be string")
+
+        if not isinstance(stDict, dict):
+            raise TypeError("stDict must be dictionary")
         self.stoichiometries[rateName] = stDict
 
     def set_stoichiometry_byCpd(self, cpdName, stDict):
@@ -389,6 +421,12 @@ class Model(object):
         -------
         None
         """
+        if not isinstance(cpdName, str):
+            raise TypeError("cpdName must be string")
+
+        if not isinstance(stDict, dict):
+            raise TypeError("stDict must be dictionary")
+
         for k,v in stDict.items():
             if k not in self.stoichiometries:
                 self.stoichiometries[k] = {}
