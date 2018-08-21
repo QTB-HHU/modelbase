@@ -5,7 +5,7 @@ Documentation for modelbase
    :numbered:
    :maxdepth: 2
 
-   installation
+   sundials-installation
    tutorial
    _autogen/modules
 
