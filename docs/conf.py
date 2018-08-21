@@ -15,6 +15,9 @@
 import sys
 from os.path import dirname
 
+import recommonmark
+from recommonmark.transform import AutoStructify
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -138,3 +141,10 @@ intersphinx_mapping = {"http://docs.python.org/": None,
                        "http://docs.scipy.org/doc/numpy/": None,
                        "http://docs.scipy.org/doc/scipy/reference": None}
 intersphinx_cache_limit = 10  # days to keep the cached inventories
+
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+            'url_resolver': lambda url: github_doc_root + url,
+            'auto_toc_tree_section': 'Contents',
+            }, True)
+    app.add_transform(AutoStructify)
