@@ -8,8 +8,8 @@ Documentation for modelbase
    installation
    tutorial
    
-   .. autoclass:: model
-      :members:
+.. autoclass:: ../modelbase/model
+   :members:
 
 
 Indices and tables
