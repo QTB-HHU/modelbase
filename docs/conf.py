@@ -64,7 +64,7 @@ extensions = [
 ]
 # Document Python Code
 autoapi_type = 'python'
-autoapi_dirs = ['../modelbase/modelbase']
+autoapi_dirs = ['../modelbase']
 autoapi_ignore = ['.tox', '.pytest_cache', 'scripts', 'benchmarks']
 
 # Napoleon settings
