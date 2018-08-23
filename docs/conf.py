@@ -62,10 +62,12 @@ extensions = [
     'autoapi.extension',
     'nbsphinx'
 ]
+
 # Document Python Code
-autoapi_type = 'python'
 autoapi_dirs = ['../modelbase']
+autoapi_type = 'python'
 autoapi_ignore = ['.tox', '.pytest_cache', 'scripts', 'benchmarks']
+autoapi_add_toctree_entry = True
 
 # Napoleon settings
 napoleon_numpy_docstring = True
