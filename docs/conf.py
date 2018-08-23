@@ -128,7 +128,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'modelbase', u'modelbase Documentation',
-     u'The modelbase team', 'cobra',
+     u'The modelbase team',
      'A package for semi-automatic ODE assembly',
      'Miscellaneous'),
 ]
