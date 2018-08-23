@@ -13,22 +13,22 @@ Ubuntu
 
 Download sundials v2.6.0
 
-::
+.. code-block:: python
 
-  cd sundials
-  mkdir instdir
-  mkdir builddir
-  cd builddir
-  cmake ../srcdir
-  ccmake ../srcdir
+   cd sundials
+   mkdir instdir
+   mkdir builddir
+   cd builddir
+   cmake ../srcdir
+   ccmake ../srcdir
      
 
 In ccmake set
 
-.. code-block:: 
+.. code-block:: python
 
-  CMAKE_C_FLAGS=-fPIC
-  LAPACK_ENABLE=OFF
+   CMAKE_C_FLAGS=-fPIC
+   LAPACK_ENABLE=OFF
 
 
 Installing Assimulo
@@ -36,15 +36,15 @@ Installing Assimulo
 
 .. code-block:: python
 
-  python3
-  pip install assimulo
+   python3
+   pip install assimulo
 
 
 or
 
 .. code-block:: python
 
-  conda install cython
-  conda install nose
-  conda install -c chria assimulo
+   conda install cython
+   conda install nose
+   conda install -c chria assimulo
 
