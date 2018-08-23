@@ -6,6 +6,7 @@ Documentation for modelbase
    :maxdepth: 2
 
    sundials-installation
+   installation
    tutorial
    _autogen/modules
 
