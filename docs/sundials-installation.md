@@ -25,12 +25,15 @@ In ccmake set
 ```
   CMAKE_C_FLAGS=-fPIC
   LAPACK_ENABLE=OFF
-  CMAKE_INSTALL_PREFIX = /home/marvin/sundials/instdir
-  EXAMPLES_INSTALL_PATH = =/home/marvin/sundials/instdir/examples
 ```
 
-Installing Assimulo
-===================
+## Installing Assimulo
+```python3
+   pip install assimulo
+```
+
+or
+
 ```python3
    conda install cython
    conda install nose
