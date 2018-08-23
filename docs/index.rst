@@ -7,6 +7,9 @@ Documentation for modelbase
 
    installation
    tutorial
+   
+   .. autoclass:: model
+      :members:
 
 
 Indices and tables
