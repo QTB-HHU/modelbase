@@ -638,25 +638,63 @@ class LabelModelTest(unittest.TestCase):
 class IntegrationTests(unittest.TestCase):
     """Test basic integration output"""
     def test_integration_one_variable(self):
-        m = mb.Model({"k0":1})
-        m.set_cpds(["X"])
-        m.set_rate('v0', lambda p, x: p.k0 * x, "X")
-        m.set_stoichiometry("v0", {"X":1})
+        """Test basic exponential decay
+        dxdt = - x
+        Solution: x(t) = exp(-t)
+        """
+        m = mb.Model()
+        m.set_cpds(["x"])
+        m.set_rate('v0', lambda p, x: -x, "x")
+        m.set_stoichiometry("v0", {"x":1})
         s = mb.Simulate(m)
-        y = s.timeCourse(np.linspace(0,10,10),np.ones(1))
-        self.assertTrue(np.isclose(y[-1][0], 22028.621954073271))
+        # Simulate 10 time units
+        t = 10
+        y = s.timeCourse(np.linspace(0,t,10),np.ones(1))
+        self.assertTrue(np.isclose(y[-1][0], np.exp(-t)))
 
     def test_integration_two_variables(self):
-        m = mb.Model({"k0":1, "k1":2})
-        m.set_cpds(["X", "Y"])
-        m.set_rate('v0', lambda p, x: p.k0 * x, "X")
-        m.set_rate('v1', lambda p, x: p.k1 * x, "Y")
-        m.set_stoichiometry("v0", {"X":1})
-        m.set_stoichiometry("v1", {"Y":1})
+        """Simple two variable integration test
+        -> X -> Y ->
+        Steady-state solution:
+        x = k0 / k1
+        y = k0 / k2
+        """
+        m = mb.Model({"k0":1, "k1":2, "k2": 4})
+        m.set_cpds(["x", "y"])
+        m.set_rate('v0', lambda p: p.k0)
+        m.set_rate('v1', lambda p, x: p.k1 * x, "x")
+        m.set_rate('v2', lambda p, y: p.k2 * y, "y")
+        m.set_stoichiometry("v0", {"x":1})
+        m.set_stoichiometry("v1", {"x":-1, "y":1})
+        m.set_stoichiometry("v2", {"y":-1})
         s = mb.Simulate(m)
-        y = s.timeCourse(np.linspace(0,10,10),np.ones(2))
-        self.assertTrue(np.isclose(y[-1][0], 22026.544796594942))
-        self.assertTrue(np.isclose(y[-1][1], 485209580.83282995))
+        # Assume steady state after 100 time units
+        y = s.timeCourse(np.linspace(0,100,10), np.ones(2))
+        self.assertTrue(np.isclose(y[-1][0], m.par.k0 / m.par.k1))
+        self.assertTrue(np.isclose(y[-1][1], m.par.k0 / m.par.k2))
+
+class AnalysisTests(unittest.TestCase):
+    """Test analysis methods"""
+
+    def test_find_steady_state(self):
+        """Simple two variable integration test
+        -> X -> Y ->
+        Steady-state solution:
+        x = k0 / k1
+        y = k0 / k2
+        """
+        from modelbase.analysis import findSteadyState
+        m = mb.Model({"k0":1, "k1":2, "k2": 4})
+        m.set_cpds(["x", "y"])
+        m.set_rate('v0', lambda p: p.k0)
+        m.set_rate('v1', lambda p, x: p.k1 * x, "x")
+        m.set_rate('v2', lambda p, y: p.k2 * y, "y")
+        m.set_stoichiometry("v0", {"x":1})
+        m.set_stoichiometry("v1", {"x":-1, "y":1})
+        m.set_stoichiometry("v2", {"y":-1})
+        x, y = findSteadyState(m, np.ones(2))
+        self.assertTrue(np.isclose(x, m.par.k0 / m.par.k1))
+        self.assertTrue(np.isclose(y, m.par.k0 / m.par.k2))
 
 if "__main__" == __name__:
     unittest.main()

@@ -88,6 +88,8 @@ class Assimulate(Simulate):
             y0 = np.zeros(len(self.model.cpdNames))
         self.problem = Explicit_Problem(self.f, y0=y0, name=name)
         self.integrator = CVode(self.problem)
+        self.integrator.atol = 1e-8
+        self.integrator.rtol = 1e-8
         self.integrator.verbosity = verbosity
 
 
