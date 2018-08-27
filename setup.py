@@ -31,6 +31,7 @@ setup(name='modelbase',
           'numpy',
           'scipy',
           'matplotlib',
-          'pandas'
+          'pandas',
+          'numdifftools'
       ],
       zip_safe=False)
