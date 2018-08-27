@@ -1,5 +1,16 @@
+Installation
+############
+
+Installing modelbase
+====================
+
+.. code-block:: python
+
+   pip install modelbase
+
+
 Building sundials
-================
+=================
 
 Prerequisites
 -------------
@@ -32,7 +43,7 @@ In ccmake set
 
 
 Installing Assimulo
--------------------
+===================
 
 .. code-block:: python
 
