@@ -38,7 +38,7 @@ conda install -c conda-forge assimulo
 conda install -c chria assimulo
 ```
 
-or build sundials from source using our [installation guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/docs/sundials-installation.md).
+or build sundials from source using our [installation guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/docs/installation.rst).
 
 
 ## License
@@ -48,8 +48,8 @@ or build sundials from source using our [installation guide](https://gitlab.com/
 The official documentation is hosted on [ReadTheDocs](https://modelbase.readthedocs.io/en/latest/).
 
 ## Issues and support
-If you experience issues using the software please contact us through our [issues](https://gitlab.com/ebenhoeh/modelbase/issues) page. For usage questions, feel free to contact @ebenhoeh .
+If you experience issues using the software please contact us through our [issues](https://gitlab.com/ebenhoeh/modelbase/issues) page.
 
 ## Contributing to modelbase
-All contributions, bug reports, bug fixes, documentation improvements, enhancements and ideas are welcome.
-Currently there is no established contribution mechanism, but any help fixing the issues on our [issues](https://gitlab.com/ebenhoeh/modelbase/issues) page is appreciated. If you found a solution for any problem, feel free to contact @ebenhoeh .
+All contributions, bug reports, bug fixes, documentation improvements, enhancements and ideas are welcome. See our [contribution guide](https://gitlab.com/ebenhoeh/modelbase/blob/master/CONTRIBUTING.md) for more information.
+
