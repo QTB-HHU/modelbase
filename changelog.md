@@ -1,4 +1,12 @@
 # Changelog
+
+## 0.2.4
+* Documentation improved. Now available on readthedocs.io. Includes instructions to install sundials
+* Analysis no longer a subclass of Model. Now dummy class with static methods.
+* Suit of unit tests included.
+* Dependencies corrected in setup.py
+* Version to be released with submission of revised manuscript to Journal of Open Research Software
+
 ## 0.2.3
 * Renamed set_reaction to add_reaction for consistency.
 * Version to be released with manuscript submission to Journal of Open Research Software
