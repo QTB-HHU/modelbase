@@ -19,7 +19,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='modelbase',
-      version='0.2.3',
+      version='0.2.4',
       description='A package to build metabolic models',
       long_description=long_description,
       url='https://gitlab.com/ebenhoeh/modelbase',
