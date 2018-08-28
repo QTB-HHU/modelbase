@@ -31,6 +31,8 @@ except:
     from .simulate import Simulate
     from .simulate import LabelSimulate
 
+from .analysis import Analysis
+
 
 def Simulator(model):
     """ Chooses the simulator class according to the model type

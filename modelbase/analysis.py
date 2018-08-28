@@ -23,130 +23,133 @@ import scipy.optimize as opt
 import numdifftools as nd
 import numpy as np
 
+class Analysis:
+    @staticmethod
+    def numericElasticities(model, y0, rate):
+        """Numerically approximates elasticisties for a rate
 
-def numericElasticities(model, y0, rate):
-    """Numerically approximates elasticisties for a rate
+        Parameters
+        ----------
+        y0 : list or numpy.array
+            State vector
+        rate : str
+            Name of the rate for which elasticities are calculated
 
-    Parameters
-    ----------
-    y0 : list or numpy.array
-        State vector
-    rate : str
-        Name of the rate for which elasticities are calculated
-
-    Returns
-    -------
-    epsilon : numdifftools.Jacobian
-        elasticities
-    """
-    def vi(y):
-        v = model.rates(y)
-        return v[rate]
-    jac = nd.Jacobian(vi, step=y0.min()/100)
-    epsilon = jac(y0)
-    return epsilon
-
-def allElasticities(model, y0, norm=False):
-    """Numerically approximates elasticisties for all rates
-
-    Parameters
-    ----------
-    y0 : list or numpy.array
-        State vector
-    norm : bool
-        Normalization for elasticities
-
-    Returns
-    -------
-    epsilon : numpy.matrix
-        Matrix of elasticities
-    """
-    rateIds = model.rateNames()
-    epsilon = np.zeros([len(rateIds), len(model.cpdNames)])
-    for i in range(len(rateIds)):
+        Returns
+        -------
+        epsilon : numdifftools.Jacobian
+            elasticities
+        """
         def vi(y):
-            return model.rateFn[rateIds[i]](y)
+            v = model.rates(y)
+            return v[rate]
         jac = nd.Jacobian(vi, step=y0.min()/100)
-        epsilon[i,:] = jac(y0)
-    if norm:
-        v = np.array(model.rates(y0).values())
-        epsilon = (1/v).reshape(len(v),1)*epsilon*y0
-    return np.matrix(epsilon)
+        epsilon = jac(y0)
+        return epsilon
 
+    @staticmethod
+    def allElasticities(model, y0, norm=False):
+        """Numerically approximates elasticisties for all rates
 
-def numericJacobian(model, y0, **kwargs):
-    """Calculate Jacobian
+        Parameters
+        ----------
+        y0 : list or numpy.array
+            State vector
+        norm : bool
+            Normalization for elasticities
 
-    Parameters
-    ----------
-    y0 : list or numpy.array
-        State vector for which Jacobian is calculated
-    Returns
-    -------
-    J : numpy.matrix
-        Jacobian
-    """
-    J = np.zeros([len(y0),len(y0)])
-    if np.isclose(y0.min(),0):
-        jstep = None
-    else:
-        jstep = y0.min()/100
-    for i in range(len(y0)):
-        def fi(y):
-            dydt = model.model(y, 0, **kwargs)
-            return dydt[i]
-        jac = nd.Jacobian(fi,step=jstep)
-        J[i,:] = jac(y0)
-    return np.matrix(J)
+        Returns
+        -------
+        epsilon : numpy.matrix
+            Matrix of elasticities
+        """
+        rateIds = model.rateNames()
+        epsilon = np.zeros([len(rateIds), len(model.cpdNames)])
+        for i in range(len(rateIds)):
+            def vi(y):
+                return model.rateFn[rateIds[i]](y)
+            jac = nd.Jacobian(vi, step=y0.min()/100)
+            epsilon[i,:] = jac(y0)
+        if norm:
+            v = np.array(model.rates(y0).values())
+            epsilon = (1/v).reshape(len(v),1)*epsilon*y0
+        return np.matrix(epsilon)
 
+    @staticmethod
+    def numericJacobian(model, y0, **kwargs):
+        """Calculate Jacobian
 
-def findSteadyState(model, y0, **kwargs):
-    """Tries to find the steady-state by numerically solving the algebraic system dy/dt = 0.
+        Parameters
+        ----------
+        y0 : list or numpy.array
+            State vector for which Jacobian is calculated
+        Returns
+        -------
+        J : numpy.matrix
+            Jacobian
+        """
+        J = np.zeros([len(y0),len(y0)])
+        if np.isclose(y0.min(),0):
+            jstep = None
+        else:
+            jstep = y0.min()/100
+        for i in range(len(y0)):
+            def fi(y):
+                dydt = model.model(y, 0, **kwargs)
+                return dydt[i]
+            jac = nd.Jacobian(fi,step=jstep)
+            J[i,:] = jac(y0)
+        return np.matrix(J)
 
-    Parameters
-    ----------
-    y0 : list or numpy.array
-        Initial guess
+    @staticmethod
+    def findSteadyState(model, y0, **kwargs):
+        """Tries to find the steady-state by numerically solving the algebraic system dy/dt = 0.
 
-    Returns
-    -------
-    sol : list
-        Possible solution
-    """
-    def fn(x):
-        return model.model(x, 0, **kwargs)
-    sol = opt.root(fn, y0)
-    if sol.success == True:
-        return sol.x
-    else:
-        return False
+        Parameters
+        ----------
+        y0 : list or numpy.array
+            Initial guess
 
-def concentrationControlCoefficients(model, y0, pname, norm=True, **kwargs):
-    """Calculates concentration control coefficients for a parameter.
-    Uses findSteadyState.
+        Returns
+        -------
+        sol : list
+            Possible solution
+        """
+        def fn(x):
+            return model.model(x, 0, **kwargs)
+        sol = opt.root(fn, y0)
+        if sol.success == True:
+            return sol.x
+        else:
+            return False
 
-    Parameters
-    ----------
-    y0 : list or numpy.array
-        Initial steady-state guess
-    pname : str
-        Parameter name to vary
-    norm : bool
-        Whether to normalize coefficients. Defaults to True.
+    @staticmethod
+    def concentrationControlCoefficients(model, y0, pname, norm=True, **kwargs):
+        """Calculates concentration control coefficients for a parameter.
+        Uses findSteadyState.
 
-    Returns
-    -------
-    cc : list
-        Response coefficients
-    """
-    origValue = getattr(model.par, pname)
-    def fn(x):
-        model.par.update({pname: x})
-        return findSteadyState(y0, **kwargs)
-    jac = nd.Jacobian(fn, step=origValue/100.)
-    cc = np.array(jac(origValue))
-    model.par.update({pname: origValue})
-    if norm:
-        ss = findSteadyState(y0, **kwargs)
-        cc = origValue * cc / ss.reshape(ss.shape[0],1)
-    return cc
+        Parameters
+        ----------
+        y0 : list or numpy.array
+            Initial steady-state guess
+        pname : str
+            Parameter name to vary
+        norm : bool
+            Whether to normalize coefficients. Defaults to True.
+
+        Returns
+        -------
+        cc : list
+            Response coefficients
+        """
+        origValue = getattr(model.par, pname)
+        def fn(x):
+            model.par.update({pname: x})
+            return findSteadyState(y0, **kwargs)
+        jac = nd.Jacobian(fn, step=origValue/100.)
+        cc = np.array(jac(origValue))
+        model.par.update({pname: origValue})
+        if norm:
+            ss = findSteadyState(y0, **kwargs)
+            cc = origValue * cc / ss.reshape(ss.shape[0],1)
+        return cc
